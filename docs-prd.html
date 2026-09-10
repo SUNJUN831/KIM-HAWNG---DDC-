@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD — 오늘 하루 식단 코치</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e334a;
+    --text: #e4e6f0;
+    --muted: #8b91a8;
+    --accent: #60a5fa;
+    --accent2: #a78bfa;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+  /* 사이드바 */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+  .sidebar-logo .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .nav-section {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    padding: 16px 20px 6px;
+    font-weight: 600;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--surface2);
+  }
+  .nav-item.active {
+    color: var(--text);
+    border-left-color: var(--accent);
+    background: var(--surface2);
+  }
+  .nav-item .num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .nav-item.active .num {
+    background: var(--accent);
+    color: #fff;
+  }
+  .nav-item .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .status-dot.done { background: var(--green); }
+  .status-dot.opt { background: var(--amber); }
+
+  /* 메인 */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+  }
+  .hero {
+    margin-bottom: 40px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    color: var(--accent);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .hero .lead {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+  }
+  .meta-grid {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .meta-item .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  /* 섹션 */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .section-header .s-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .section-header .s-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .section-header .s-arrow {
+    margin-left: auto;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .section-header.open .s-arrow {
+    transform: rotate(90deg);
+  }
+  .section-body {
+    padding: 0 20px;
+    display: none;
+  }
+  .section.open .section-body {
+    display: block;
+  }
+  .section.open .section-header {
+    border-bottom-color: var(--border);
+  }
+
+  .p-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  @media (max-width: 720px) {
+    .p-grid { grid-template-columns: 1fr; }
+  }
+  .p-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .p-card h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .p-card .value {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .p-card .value strong {
+    color: var(--text);
+  }
+
+  /* 기능 카드 */
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .feature-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .feature-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .feature-badge.p0 {
+    background: rgba(251, 191, 36, 0.15);
+    color: var(--amber);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+  .feature-badge.p1 {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--muted);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .feature-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .feature-content p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* 표 */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--muted); white-space: nowrap; }
+
+  /* 태그 */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .tag.calc { background: rgba(96,165,250,0.12); color: var(--accent); border: 1px solid rgba(96,165,250,0.2); }
+  .tag.sol { background: rgba(167,139,250,0.12); color: var(--accent2); border: 1px solid rgba(167,139,250,0.2); }
+  .tag.local { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+
+  .highlight {
+    background: rgba(96,165,250,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 12px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    margin-top: 12px;
+    color: var(--text);
+  }
+  .highlight.warn {
+    background: rgba(251,191,36,0.08);
+    border-left-color: var(--amber);
+  }
+  .highlight.danger {
+    background: rgba(248,113,113,0.08);
+    border-left-color: var(--red);
+  }
+
+  /* 입력/출력 다이어그램 */
+  .io-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .io-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    min-width: 160px;
+    flex: 1;
+  }
+  .io-box .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .io-box ul {
+    list-style: none;
+    font-size: 12px;
+  }
+  .io-box li {
+    padding: 3px 0;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .io-box li::before {
+    content: '•';
+    color: var(--accent);
+  }
+  .io-arrow {
+    color: var(--muted);
+    font-size: 18px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  /* 여정 */
+  .journey {
+    display: flex;
+    gap: 0;
+    margin-top: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .journey-step {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-right: 8px;
+    position: relative;
+  }
+  .journey-step:last-child { margin-right: 0; }
+  .journey-step .time {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .journey-step .event {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .journey-step .desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .journey-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 0 4px;
+    flex-shrink: 0;
+    margin-top: 18px;
+  }
+
+  /* 성공 기준 */
+  .check-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  @media (max-width: 600px) {
+    .check-list { grid-template-columns: 1fr; }
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    padding: 8px 0;
+  }
+  .check-item .box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--accent);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+  }
+  .check-item .box::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 11px;
+    opacity: 0;
+  }
+  .check-item.done .box::after { opacity: 1; }
+  .check-item .txt { color: var(--muted); line-height: 1.4; }
+
+  .footnote {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    line-height: 1.6;
+  }
+
+  /* 스크롤바 */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>📋 MVP PRD</h2>
+      <div class="sub">오늘 하루 식단 코치 · v1.0</div>
+    </div>
+    <div class="nav-section">스킬 매핑</div>
+    <a class="nav-item active" data-target="sec1">
+      <span class="num">1</span>한 줄 정의
+    </a>
+    <a class="nav-item" data-target="sec2">
+      <span class="num">2</span>타깃 사용자
+    </a>
+    <a class="nav-item" data-target="sec3">
+      <span class="num">3</span>문제
+    </a>
+    <a class="nav-item" data-target="sec4">
+      <span class="num">4</span>트리거
+    </a>
+    <div class="nav-section">핵심 기능</div>
+    <a class="nav-item" data-target="sec5">
+      <span class="num">5</span>기능 (P0/P1)
+    </a>
+    <div class="nav-section">상세 설계</div>
+    <a class="nav-item" data-target="sec6">
+      <span class="num">6</span>스킬 매핑
+    </a>
+    <a class="nav-item" data-target="sec7">
+      <span class="num">7</span>입력·출력
+    </a>
+    <a class="nav-item" data-target="sec8">
+      <span class="num">8</span>필요 설정
+    </a>
+    <a class="nav-item" data-target="sec9">
+      <span class="num">9</span>데이터 규칙
+    </a>
+    <a class="nav-item" data-target="sec10">
+      <span class="num">10</span>성공 기준
+    </a>
+    <a class="nav-item" data-target="sec11">
+      <span class="num">11</span>제외 범위
+    </a>
+    <div style="flex:1;"></div>
+    <div class="nav-section">상태</div>
+    <div class="nav-item" style="color:var(--muted); font-size:12px; border-left:none;">
+      <span style="margin-left:20px;">구현 대기</span>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="main">
+
+    <!-- 히어로 -->
+    <div class="hero">
+      <div class="hero-badge">⚡ MVP · 결선 데모용</div>
+      <h1>오늘 하루 식단 코치</h1>
+      <p class="lead">식단 계획이 자꾸 바뀌는 20~30대 직장인이, 오늘 이미 먹은 양과 오늘 활동 기준으로 남은 하루 식사 범위를 숫자와 전략으로 확인하는 웹 서비스</p>
+      <div class="meta-grid">
+        <div class="meta-item"><span class="icon">🎯</span> P0 4개 + P1 1개</div>
+        <div class="meta-item"><span class="icon">💻</span> Vercel 배포 · URL 접속</div>
+        <div class="meta-item"><span class="icon">🔑</span> UPSTAGE_API_KEY (서버만)</div>
+        <div class="meta-item"><span class="icon">🌐</span> 한국어 · 계정 불필요</div>
+      </div>
+    </div>
+
+    <!-- 1. 한 줄 정의 -->
+    <section class="section open" id="sec1">
+      <div class="section-header open">
+        <span class="s-num">1</span>
+        <span class="s-title">한 줄 정의</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div class="highlight">
+          감량·유지·증량을 목표로 하는 20~30대 직장인·대학생이, 오늘 이미 먹은 양과 오늘 활동 기준으로 <strong>남은 하루 식사 범위를 숫자와 전략으로 확인</strong>하고, 회식·외식처럼 계획이 바뀌는 식사 앞에서도 얼마나 조절할지 판단하도록 돕는 웹 서비스.
+        </div>
+        <p style="font-size:12px; color:var(--muted); margin-top:8px;">← A-1 ⑤ SOLVE 답변 기반</p>
+      </div>
+    </section>
+
+    <!-- 2. 타깃 사용자 -->
+    <section class="section" id="sec2">
+      <div class="section-header">
+        <span class="s-num">2</span>
+        <span class="s-title">타깃 사용자</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div class="p-grid">
+          <div class="p-card">
+            <h4>누구</h4>
+            <div class="value">20~30대 <strong>직장인·대학생</strong><br>감량·유지·증량을 신경 쓰지만, 회식·외식·간식처럼 <strong>식사 계획이 자주 바뀌는</strong> 사람</div>
+          </div>
+          <div class="p-card">
+            <h4>고통 지점</h4>
+            <div class="value">지금까지 먹은 양을 기준으로 <strong>"오늘 얼마나 더 먹을 수 있는지"</strong>, <strong>"남은 식사를 어떻게 조절할지"</strong> 판단이 어려움</div>
+          </div>
+          <div class="p-card">
+            <h4>접근성</h4>
+            <div class="value">언어: <strong>한국어</strong><br>비용: 유료 코칭 없이 간단히<br>디지털 문해력: 높지 않게 — <strong>음식 이름·양만 문장으로 입력</strong>하면 사용 가능</div>
+          </div>
+          <div class="p-card">
+            <h4>핵심 페르소나</h4>
+            <div class="value">28세 직장인, 오늘 점심 김밥 한 줄 + 아메리카노, 저녁에 팀 회식(삼겹살) 예정되어 있음. 목표: 감량.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 문제 -->
+    <section class="section" id="sec3">
+      <div class="section-header">
+        <span class="s-num">3</span>
+        <span class="s-title">문제</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <p style="font-size:14px; line-height:1.7;">
+          오늘 점심·간식까지 먹은 양을 기준으로, 저녁·회식·외식을 앞두고 <strong>"오늘 얼마나 더 먹을 수 있는지"</strong>, <strong>"남은 식사를 어떻게 조절할지"</strong>를 머릿속으로만 어림짐작해야 해서 판단이 어렵고, 과식하거나 반대로 너무 제한하는 결과를 낳음.
+        </p>
+        <div class="highlight warn" style="margin-top:12px;">
+          또 하루 식사 후 오늘 총 섭취량을 목표와 비교해 정리하는 것도 번거로움 — 숫자로 보기 전까지 "오늘 얼마나 먹었는지" 감으로만 알고 넘어감.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 트리거 -->
+    <section class="section" id="sec4">
+      <div class="section-header">
+        <span class="s-num">4</span>
+        <span class="s-title">트리거 — 언제 쓰나</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div class="journey">
+          <div class="journey-step">
+            <div class="time">아침</div>
+            <div class="event">하루 식사 계획</div>
+            <div class="desc">오늘 뭐 먹을지 대략 계획할 때</div>
+          </div>
+          <div class="journey-arrow">→</div>
+          <div class="journey-step">
+            <div class="time">식사 후</div>
+            <div class="event">먹은 음식 기록</div>
+            <div class="desc">점심·간식 먹은 뒤 바로 기록</div>
+          </div>
+          <div class="journey-arrow">→</div>
+          <div class="journey-step">
+            <div class="time">회식·외식 전</div>
+            <div class="event">남은 범위 확인</div>
+            <div class="desc">오늘 얼마나 더 먹을 수 있는지 확인</div>
+          </div>
+          <div class="journey-arrow">→</div>
+          <div class="journey-step">
+            <div class="time">하루 끝</div>
+            <div class="event">정리</div>
+            <div class="desc">오늘 총 섭취량 vs 목표 결과 확인</div>
+          </div>
+        </div>
+        <div class="highlight" style="margin-top:12px;">
+          사건 기준. 특정 시간대보다 <strong>"언제든 URL로 와서"</strong> 필요한 순간마다 확인하는 흐름.
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 핵심 기능 -->
+    <section class="section" id="sec5">
+      <div class="section-header">
+        <span class="s-num">5</span>
+        <span class="s-title">핵심 기능 — P0 / P1</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:4px;">P0 = 결선 데모 필수 (최대 4개) · P1 = 있으면 더 좋은 것</p>
+
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-badge p0">P0</div>
+            <div class="feature-content">
+              <h4>① 기본 프로필 등록 + 저장</h4>
+              <p>성별·나이·키·체중·목표(감량/유지/증량) 처음 한 번 등록 → <span class="tag local">localStorage</span> 재접속 시 재입력 안 함, 초기화 버튼 제공</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-badge p0">P0</div>
+            <div class="feature-content">
+              <h4>② 오늘 활동 강도 선택 (5단계)</h4>
+              <p>거의 없음 / 낮음 / 보통 / 높음 / 매우 높음 — <strong>운동 소모 칼로리 별도 미입력</strong>, 활동 강도에 이미 포함 → 중복 계산 방지</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-badge p0">P0</div>
+            <div class="feature-content">
+              <h4>③ 오늘 먹은 음식·양 자연어 입력 → 추정 범위</h4>
+              <p>라면 1개, 삼겹살 200g, 김밥 한 줄 등 자연어로 입력 → 끼니별·전체 <strong>추정 칼로리 범위</strong> 제시 (추정임을 명시)</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-badge p0">P0</div>
+            <div class="feature-content">
+              <h4>④ 오늘 기준 요약 + 식사 전략</h4>
+              <p><strong>목표 섭취칼로리 + 현재 섭취량 + 남은 범위</strong> 한눈에 요약 + 식사 전략 제시<br>
+              • 예정 식사 있으면 → 총 섭취량 예상 + 목표 대비 판단 + 조절 안내<br>
+              • 예정 식사 없으면 → 남은 칼로리 기준 다음 식사량·메뉴 방향 추천</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-badge p1">P1</div>
+            <div class="feature-content">
+              <h4>하루 종료 후 목표 대비 결과 확인</h4>
+              <p>오늘 총 섭취량 vs 목표(감량/유지/증량) 대비 결과를 간단히 확인</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. 스킬 매핑 -->
+    <section class="section" id="sec6">
+      <div class="section-header">
+        <span class="s-num">6</span>
+        <span class="s-title">스킬 매핑 — 계산 vs 해석·전략</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div class="highlight" style="margin-bottom:12px;">
+          서비스의 역할은 <strong>계산층(코드)</strong>과 <strong>해석·전략층(Solar Pro 4)</strong>으로 나눈다.
+        </div>
+
+        <div class="p-grid">
+          <div class="p-card">
+            <h4><span class="tag calc">계산층 · 코드</span> 서버사이드 직접 연산</h4>
+            <div class="value" style="font-size:13px;">
+              • BMR (Mifflin-St Jeor, 원값 사용)<br>
+              • 오늘 활동계수 적용 → 오늘 예상 소비칼로리<br>
+              • 감량/유지/증량 목표 조정<br>
+              • 현재 섭취 하한·상한 합계<br>
+              • 남은 칼로리 범위
+            </div>
+          </div>
+          <div class="p-card">
+            <h4><span class="tag sol">해석·전략층 · Solar Pro 4</span> 모델명 <code>solar-pro4</code> 고정</h4>
+            <div class="value" style="font-size:13px;">
+              • 자연어 음식·양 해석 (라면 1개, 삼겹살 200g 등)<br>
+              • 각 음식 추정 칼로리 범위(하한~상한) 산출<br>
+              • "오늘 전략" 텍스트 생성 (끼니별 균형, 조절 안내 등)
+            </div>
+          </div>
+        </div>
+
+        <div class="highlight" style="margin-top:12px;">
+          <strong>서비스 구조:</strong> <code>/api/calculate</code>가 계산층 + Solar 호출을 함께 제공. 클라이언트는 같은 도메인 <code>/api</code>만 fetch. daily-diet-coach의 외부 food API는 없으며, Solar 호출 공개 모델은 Upstage API.
+        </div>
+
+        <div class="highlight warn" style="margin-top:8px;">
+          호출 전 안전 점검(A-0) 결과: 목적=오늘 하루 식단 관리 코치 / 필요한 설정=UPSTAGE_API_KEY / 외부 전송=Solar 호출 외 없음 / 권한 요구=없음 → <strong>통과</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. 입력·출력 -->
+    <section class="section" id="sec7">
+      <div class="section-header">
+        <span class="s-num">7</span>
+        <span class="s-title">입력 · 출력</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div class="io-flow">
+          <div class="io-box">
+            <div class="label">입력 — 기본 프로필 (첫 등록)</div>
+            <ul>
+              <li>성별 (남성/여성)</li>
+              <li>나이 (세)</li>
+              <li>키 (cm)</li>
+              <li>체중 (kg)</li>
+              <li>목표 (감량/유지/증량)</li>
+            </ul>
+          </div>
+          <div class="io-arrow">→</div>
+          <div class="io-box">
+            <div class="label">입력 — 오늘 기록 (매일)</div>
+            <ul>
+              <li>활동 강도 5단계</li>
+              <li>먹은 음식·양 (자연어)</li>
+              <li>예정 음식 (있으면)</li>
+            </ul>
+          </div>
+          <div class="io-arrow">→</div>
+          <div class="io-box">
+            <div class="label">출력 — 화면에 보이는 것</div>
+            <ul>
+              <li>목표·현재·남은 칼로리 요약</li>
+              <li>먹은 음식별 추정 칼로리 기록</li>
+              <li>예정 식사 분석 (있으면)</li>
+              <li>오늘 전략 텍스트</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <h4 style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">저장 방식</h4>
+          <table>
+            <tr>
+              <th>저장 대상</th>
+              <th>저장소</th>
+              <th>유지 기간</th>
+              <th>비고</th>
+            </tr>
+            <tr>
+              <td>기본 프로필 (성별·나이·키·체중·목표)</td>
+              <td><span class="tag local">localStorage</span></td>
+              <td>날짜 무관 지속</td>
+              <td>한 번 등록하면 계속 유지, 초기화 버튼으로 삭제</td>
+            </tr>
+            <tr>
+              <td>오늘 활동 강도</td>
+              <td><span class="tag local">localStorage</span></td>
+              <td>날짜 기준 (오늘)</td>
+              <td>같은 날 재접속 시 유지, 날짜 바뀌면 새 기록</td>
+            </tr>
+            <tr>
+              <td>오늘 먹은 음식</td>
+              <td><span class="tag local">localStorage</span></td>
+              <td>날짜 기준 (오늘)</td>
+              <td>같은 날 재접속 시 유지, 음식 추가 입력 시 갱신</td>
+            </tr>
+            <tr>
+              <td>오늘 예정 음식</td>
+              <td><span class="tag local">localStorage</span></td>
+              <td>날짜 기준 (오늘)</td>
+              <td>없으면 생략 가능</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. 필요 설정 -->
+    <section class="section" id="sec8">
+      <div class="section-header">
+        <span class="s-num">8</span>
+        <span class="s-title">필요 설정</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div class="p-grid">
+          <div class="p-card">
+            <h4>(a) 배포 연결</h4>
+            <div class="value">Vercel 프로젝트 연결 → 프로덕션 도메인: <code>프로젝트명.vercel.app</code><br>환경변수 값은 여기서 안 다룸</div>
+          </div>
+          <div class="p-card">
+            <h4>(b) 서비스 키 <span class="tag sol">Vercel 환경변수</span></h4>
+            <div class="value">
+              <strong>UPSTAGE_API_KEY</strong><br>
+              • 용도: Solar Pro 4 호출용 (음식 해석·칼로리 범위·전략 텍스트)<br>
+              • 발급처: Upstage<br>
+              • <strong>값은 사용자가 직접 입력</strong>, 대화에 적지 않음<br>
+              • <code>/api</code>만 읽고, 클라이언트에는 0개
+            </div>
+          </div>
+          <div class="p-card" style="grid-column: 1 / -1;">
+            <h4>(c) 사용자 프로필 + 하루 기록 <span class="tag local">localStorage</span></h4>
+            <div class="value">
+              <strong>프로필(날짜 무관 지속):</strong> <code>gender</code>, <code>age</code>, <code>height_cm</code>, <code>weight_kg</code>, <code>goal</code><br>
+              <strong>하루 기록(날짜 기준):</strong> 오늘 활동 강도, 오늘 먹은 음식(자연어 리스트), 오늘 예정 음식(자연어) — 키: 현재 날짜(<code>YYYY-MM-DD</code>)<br>
+              • 같은 날 재접속 시 저장돼 있던 오늘 기록 유지<br>
+              • 날짜가 바뀌면 새 키로 새 하루 기록 시작, 전날은 오늘 화면에 미노출<br>
+              • 프로필 초기화 버튼은 프로필만 초기화
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. 데이터 규칙 -->
+    <section class="section" id="sec9">
+      <div class="section-header">
+        <span class="s-num">9</span>
+        <span class="s-title">데이터 규칙</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <table>
+          <tr>
+            <td>추정치 표시</td>
+            <td>모든 칼로리 수치·음식 추정치는 <strong>활동계수와 일반 음식 참조 정보의 추정치</strong>이며 실제 값과 차이 날 수 있음을 표시. 숫자에 "약", 범위에 "~ kcal" 사용, 단정 표현 금지</td>
+          </tr>
+          <tr>
+            <td>없는 값</td>
+            <td>없는 값은 <strong>'확인 불가'</strong>로 두고 추측하지 않음</td>
+          </tr>
+          <tr>
+            <td>키·프록시 주소</td>
+            <td>서버(<code>/api</code>)에만. 클라이언트(index.html)에는 <strong>0개</strong></td>
+          </tr>
+          <tr>
+            <td>기준 시각</td>
+            <td>오늘(date) 기준이라는 점 명시</td>
+          </tr>
+          <tr>
+            <td>최소 권한</td>
+            <td>필요한 계산만 수행</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- 10. 성공 기준 -->
+    <section class="section" id="sec10">
+      <div class="section-header">
+        <span class="s-num">10</span>
+        <span class="s-title">성공 기준 — 데모 시나리오</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">시크릿 창(계정·저장값 없는 첫 방문)에서 아래가 모두 돼야 함</p>
+
+        <div class="check-list">
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>기본 프로필 등록</strong> 화면 → localStorage 저장 확인</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>오늘 활동 강도 + 먹은 음식</strong> 입력 → 계산 결과 표시 (목표/현재/남은 칼로리 요약 + 음식별 추정치 + 전략)</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>예정 음식 입력</strong> 시 → 총 섭취량 예상 범위와 목표 대비 판단 표시</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>예정 음식 없을 때</strong> → 남은 칼로리 기준 식사 추천 표시</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>같은 날 재접속</strong> 시 오늘 활동 강도·먹은 음식 기록 유지</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>재접속 후 음식 추가 입력</strong> → 현재 섭취량·남은 칼로리 정상 갱신</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><code>/api</code> 응답이 환경변수 값을 포함하지 않음</div>
+          </div>
+          <div class="check-item">
+            <div class="box"></div>
+            <div class="txt"><strong>공개 URL:</strong> <code>프로젝트명.vercel.app</code>, index 200 + 제목 문자열 원문 그대로, <code>/api</code> 200</div>
+          </div>
+        </div>
+
+        <div class="highlight" style="margin-top:12px;">
+          <strong>P0 4개 데모 통과</strong> (P0 = 최대 4개, 초과 없음)
+        </div>
+
+        <div style="margin-top:16px;">
+          <h4 style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">배포 후 검증 체크리스트</h4>
+          <table>
+            <tr>
+              <th>항목</th>
+              <th>확인</th>
+            </tr>
+            <tr>
+              <td>공개 URL (프로젝트명.vercel.app)</td>
+              <td>index 200 + 제목 문자열 원문 그대로</td>
+            </tr>
+            <tr>
+              <td><code>/api</code> 상태 코드</td>
+              <td>200</td>
+            </tr>
+            <tr>
+              <td>클라이언트 소스에 키·프록시 주소</td>
+              <td>0개</td>
+            </tr>
+            <tr>
+              <td><code>/api</code> 응답 JSON에 환경변수 값</td>
+              <td>없음</td>
+            </tr>
+            <tr>
+              <td><code>/api</code>가 호출하는 외부 주소 목록</td>
+              <td>PRD 6번과 일치 (Upstage API만)</td>
+            </tr>
+            <tr>
+              <td>시크릿 창 첫 방문 안내</td>
+              <td>스스로 나오고 최소 기능 동작</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. 제외 범위 -->
+    <section class="section" id="sec11">
+      <div class="section-header">
+        <span class="s-num">11</span>
+        <span class="s-title">제외 범위</span>
+        <span class="s-arrow">▶</span>
+      </div>
+      <div class="section-body">
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <div class="highlight danger">
+            <strong>치료식·질환 처방</strong> — 생활 속 칼로리·식사 균형 관리 용도로만. 질환 관리·치료 목적 식단 처방은 하지 않음.
+          </div>
+          <div class="highlight danger">
+            <strong>정밀 영양 분석</strong> — 탄단지·미량영양소 등 식사 외 영양 정보는 노출하지 않음. 칼로리 추정·전략만.
+          </div>
+          <div class="highlight danger">
+            <strong>실제 소모 칼로리 측정 아님</strong> — 오늘 예상 소비는 활동계수(1.2/1.375/1.55/1.725/1.9) 기반 <strong>간이 추정치</strong>. 개인별 신체활동·운동 종류·강도·생활패턴에 따라 실제 소비열량과 차이 발생 가능.
+          </div>
+          <div class="highlight danger">
+            <strong>운동 소모 칼로리 별도 입력·가산 금지</strong> — 중복 계산 방지. 오늘 활동 강도에 이미 포함.
+          </div>
+          <div class="highlight danger">
+            <strong>외부 식품 API 연동 없음</strong> — 일반 음식 참조 범위만 사용. API 키 없음.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footnote">
+      PRD v1.0 · daily-diet-coach 스킬 기반 · skill-to-service A-0/B/C 절차에 따라 작성<br>
+      Modified: P0 #4에 예정 식사 분석 통합, P1에서 예정 식사 분석·프로필 초기화 제거, 계산층(code) + 해석·전략층(Solar Pro 4, 모델명 solar-pro4 고정)으로 역할 분담, 하루 기록 날짜 기준 localStorage 저장
+    </div>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.nav-item[data-target]').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      const targetId = item.dataset.target;
+      document.querySelectorAll('.section').forEach(s => {
+        s.classList.remove('open');
+        s.querySelector('.section-header').classList.remove('open');
+      });
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.classList.add('open');
+        target.querySelector('.section-header').classList.add('open');
+      }
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  document.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const section = header.closest('.section');
+      section.classList.toggle('open');
+      header.classList.toggle('open');
+    });
+  });
+</script>
+</body>
+</html>

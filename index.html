@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘 하루 식단 코치</title>
+<style>
+  :root {
+    --bg: #f5f5f5;
+    --card: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666666;
+    --border: #dddddd;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
+    --warn: #dc2626;
+    --ok: #16a34a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 16px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px 0;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 16px 0;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+  }
+  .form-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .form-row label {
+    font-size: 13px;
+    min-width: 70px;
+    color: var(--muted);
+  }
+  .form-row input, .form-row select, .form-row textarea {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+  }
+  .form-row textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn.secondary {
+    background: #e5e7eb;
+    color: var(--fg);
+  }
+  .btn.danger {
+    background: var(--warn);
+    color: #fff;
+  }
+  .inline-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .summary-item {
+    background: var(--accent-bg);
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .summary-item .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .summary-item .value {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .summary-item.warn { background: #fef2f2; border-color: #fecaca; }
+  .summary-item.ok { background: #f0fdf4; border-color: #bbf7d0; }
+  .food-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .food-table th, .food-table td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .food-table th {
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+  .food-table .cal-range {
+    font-family: "Consolas", monospace;
+    white-space: nowrap;
+  }
+  .strategy-box {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    padding: 10px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+  .note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .empty {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 8px 0;
+    font-style: italic;
+  }
+  .date-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>오늘 하루 식단 코치</h1>
+  <p class="sub">오늘 활동·식사 기준으로 남은 하루 식사를 계획해요. 모든 수치는 추정치예요.</p>
+
+  <!-- 프로필 섹션 -->
+  <section id="profileSection" class="card">
+    <div class="card-title">기본 정보 (처음 한 번만 등록)</div>
+    <div id="profileForm">
+      <div class="form-row">
+        <label>성별</label>
+        <select id="gender">
+          <option value="male">남성</option>
+          <option value="female">여성</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>나이</label>
+        <input type="number" id="age" min="10" max="120" placeholder="세">
+      </div>
+      <div class="form-row">
+        <label>키(cm)</label>
+        <input type="number" id="height" min="120" max="250" step="0.1" placeholder="cm">
+      </div>
+      <div class="form-row">
+        <label>체중(kg)</label>
+        <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="kg">
+      </div>
+      <div class="form-row">
+        <label>목표</label>
+        <select id="goal">
+          <option value="loss">감량</option>
+          <option value="maintain">유지</option>
+          <option value="gain">증량</option>
+        </select>
+      </div>
+      <div class="inline-btns">
+        <button class="btn" id="saveProfileBtn">저장</button>
+        <button class="btn secondary" id="resetProfileBtn">프로필 초기화</button>
+      </div>
+    </div>
+    <div id="profileSaved" class="hidden" style="margin-top:8px;">
+      <span style="font-size:13px; color:var(--muted);">
+        저장된 프로필: <strong id="profileDisplay"></strong>
+        <button class="btn danger" id="resetProfileBtn2" style="margin-left:8px;">초기화</button>
+      </span>
+    </div>
+  </section>
+
+  <!-- 오늘 입력 섹션 -->
+  <section id="todaySection" class="card">
+    <div class="card-title">오늘 기록</div>
+    <div class="date-label" id="dateLabel"></div>
+
+    <div class="form-row">
+      <label>오늘 활동 강도</label>
+      <select id="activityLevel">
+        <option value="1.2">거의 활동 없음</option>
+        <option value="1.375">낮음</option>
+        <option value="1.55" selected>보통</option>
+        <option value="1.725">높음</option>
+        <option value="1.9">매우 높음</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label style="min-width:80px;">먹은 음식</label>
+      <textarea id="eatenFoods" placeholder="예: 라면 1개, 계란 2개, 김밥 한 줄"></textarea>
+    </div>
+
+    <div class="form-row">
+      <label style="min-width:80px;">예정 음식 (없으면 비워두세요)</label>
+      <textarea id="plannedFoods" placeholder="예: 삼겹살 200g, 치킨 반마리"></textarea>
+    </div>
+
+    <div class="inline-btns">
+      <button class="btn" id="saveTodayBtn">오늘 기록 저장</button>
+      <button class="btn secondary" id="clearTodayBtn">오늘 기록 초기화</button>
+    </div>
+    <div class="note">운동은 따로 입력하지 않아도 돼요. 오늘 활동 강도에 이미 포함돼요.</div>
+  </section>
+
+  <!-- 결과 섹션 -->
+  <section id="resultSection" class="hidden">
+    <div class="card">
+      <div class="card-title">오늘 기준</div>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="label">기초대사량</div>
+          <div class="value" id="bmrValue">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">오늘 예상 소비</div>
+          <div class="value" id="tdeeValue">—</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">목표</div>
+          <div class="value" id="goalValue">—</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="summary-item">
+          <div class="label">현재 섭취</div>
+          <div class="value" id="currentIntakeValue">—</div>
+        </div>
+        <div class="summary-item" id="remainingBox" style="margin-top:8px;">
+          <div class="label">저녁 전 남은 범위</div>
+          <div class="value" id="remainingValue">—</div>
+        </div>
+      </div>
+      <div class="note" id="goalNote"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">오늘 먹은 음식</div>
+      <div id="foodLog"><div class="empty">아직 먹은 음식이 없어요.</div></div>
+    </div>
+
+    <div class="card" id="plannedSection">
+      <div class="card-title">오늘 예정 식사</div>
+      <div id="plannedContent"><div class="empty">예정된 식사가 없어요.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">오늘 전략</div>
+      <div id="strategyContent"><div class="empty">전략을 계산 중이에요.</div></div>
+    </div>
+  </section>
+
+  <div class="note" style="text-align:center; margin-top:16px;">
+    소비·음식 칼로리는 활동계수와 일반적인 음식 정보를 이용한 추정치이며 실제 값과 차이가 날 수 있어요.
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const LS_PROFILE_KEY = 'ddc_profile';
+const LS_TODAY_PREFIX = 'ddc_today_';
+
+function todayKey() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(LS_PROFILE_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || !p.gender || !p.age || !p.height || !p.weight || !p.goal) return null;
+    return p;
+  } catch { return null; }
+}
+
+function saveProfile(p) {
+  localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(p));
+}
+
+function loadToday() {
+  try {
+    const raw = localStorage.getItem(LS_TODAY_PREFIX + todayKey());
+    if (!raw) return null;
+    const t = JSON.parse(raw);
+    if (!t || typeof t.activityLevel !== 'string') return null;
+    return t;
+  } catch { return null; }
+}
+
+function saveToday(t) {
+  localStorage.setItem(LS_TODAY_PREFIX + todayKey(), JSON.stringify(t));
+}
+
+function clearToday() {
+  localStorage.removeItem(LS_TODAY_PREFIX + todayKey());
+}
+
+function showElem(id) { $(id).classList.remove('hidden'); }
+function hideElem(id) { $(id).classList.add('hidden'); }
+
+function fmt(n) {
+  // 반올림하여 정수 표시
+  return Math.round(n).toLocaleString();
+}
+
+function displayProfile(p) {
+  $('profileForm').classList.add('hidden');
+  $('profileSaved').classList.remove('hidden');
+  $('profileDisplay').textContent =
+    `${p.gender === 'male' ? '남성' : '여성'} / ${p.age}세 / ${p.height}cm / ${p.weight}kg / ${p.goal === 'loss' ? '감량' : p.goal === 'maintain' ? '유지' : '증량'}`;
+}
+
+function renderProfileForm(p) {
+  if (!p) return;
+  $('gender').value = p.gender;
+  $('age').value = p.age;
+  $('height').value = p.height;
+  $('weight').value = p.weight;
+  $('goal').value = p.goal;
+}
+
+function renderTodayForm(t) {
+  if (!t) return;
+  $('activityLevel').value = t.activityLevel;
+  $('eatenFoods').value = t.eatenFoods || '';
+  $('plannedFoods').value = t.plannedFoods || '';
+}
+
+function renderFoodLog(foods) {
+  const el = $('foodLog');
+  if (!foods || foods.length === 0) {
+    el.innerHTML = '<div class="empty">아직 먹은 음식이 없어요.</div>';
+    return;
+  }
+  let html = '<table class="food-table"><thead><tr><th>음식</th><th>추정 칼로리</th></tr></thead><tbody>';
+  for (const f of foods) {
+    const lo = f.calLow != null ? fmt(f.calLow) : '—';
+    const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
+    html += `<tr>
+      <td><strong>${esc(f.name)}</strong> ${esc(f.qty || '')}</td>
+      <td class="cal-range">약 ${lo}~${hi} kcal${f.note ? '<br><span style="color:var(--muted);font-size:11px;">'+esc(f.note)+'</span>' : ''}</td>
+    </tr>`;
+  }
+  const totalLo = foods.reduce((s, f) => s + (f.calLow ?? 0), 0);
+  const totalHi = foods.reduce((s, f) => s + (f.calHigh ?? 0), 0);
+  html += `<tr style="font-weight:600;background:#f9fafb;">
+    <td>합계</td>
+    <td class="cal-range">약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</td>
+  </tr>`;
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+async function runCalc() {
+  const profile = loadProfile();
+  if (!profile) {
+    alert('프로필을 먼저 저장해주세요.');
+    return;
+  }
+
+  const activityLevel = $('activityLevel').value;
+  const eatenRaw = $('eatenFoods').value.trim();
+  const plannedRaw = $('plannedFoods').value.trim();
+
+  // 오늘 기록 저장 (계산 전)
+  saveToday({
+    activityLevel,
+    eatenFoods: eatenRaw,
+    plannedFoods: plannedRaw,
+    savedAt: new Date().toISOString()
+  });
+
+  const payload = {
+    profile,
+    activityLevel: parseFloat(activityLevel),
+    eatenFoods: eatenRaw ? eatenRaw.split('\n').map(s => s.trim()).filter(Boolean) : [],
+    plannedFoods: plannedRaw ? plannedRaw.split('\n').map(s => s.trim()).filter(Boolean) : []
+  };
+
+  hideElem('resultSection');
+  $('strategyContent').innerHTML = '<div class="empty">계산 중이에요…</div>';
+  showElem('resultSection');
+  showElem('strategyContent');
+
+  try {
+    const res = await fetch('/api/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`서버 오류 (${res.status}): ${text}`);
+    }
+    const data = await res.json();
+    renderResult(data);
+  } catch (e) {
+    $('strategyContent').innerHTML =
+      `<div class="strategy-box" style="border-left-color:var(--warn);">계산 중 오류가 발생했어요: ${esc(e.message)}</div>`;
+    console.error(e);
+  }
+}
+
+function renderResult(data) {
+  // 요약
+  $('bmrValue').textContent = fmt(data.bmr) + ' kcal';
+  $('tdeeValue').textContent = fmt(data.todayConsumption) + ' kcal';
+  const goalLabel = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
+  $('goalValue').textContent = fmt(data.targetCalories) + ' kcal (' + goalLabel + ')';
+  $('currentIntakeValue').textContent = '약 ' + fmt(data.currentIntakeLo) + '~' + fmt(data.currentIntakeHi) + ' kcal';
+  $('remainingValue').textContent = '약 ' + fmt(data.remainingLo) + '~' + fmt(data.remainingHi) + ' kcal';
+
+  // 목표 비교
+  const goalLabel2 = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
+  $('goalNote').textContent = '현재 추정치상 ' + goalLabel2 + ' 목표(' + fmt(data.targetCalories) + ' kcal) 대비 상태예요.';
+
+  // 음식 기록
+  renderFoodLog(data.foods);
+
+  // 예정 식사
+  const plannedEl = $('plannedContent');
+  if (data.plannedFoods && data.plannedFoods.length > 0) {
+    let html = '<table class="food-table"><thead><tr><th>예정 음식</th><th>추정 칼로리</th></tr></thead><tbody>';
+    for (const f of data.plannedFoods) {
+      const lo = f.calLow != null ? fmt(f.calLow) : '—';
+      const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
+      html += `<tr>
+        <td><strong>${esc(f.name)}</strong> ${esc(f.qty || '')}</td>
+        <td class="cal-range">약 ${lo}~${hi} kcal${f.note ? '<br><span style="color:var(--muted);font-size:11px;">'+esc(f.note)+'</span>' : ''}</td>
+      </tr>`;
+    }
+    const pLo = data.plannedFoods.reduce((s,f) => s + (f.calLow ?? 0), 0);
+    const pHi = data.plannedFoods.reduce((s,f) => s + (f.calHigh ?? 0), 0);
+    html += `<tr style="font-weight:600;background:#f9fafb;">
+      <td>합계</td>
+      <td class="cal-range">약 ${fmt(pLo)}~${fmt(pHi)} kcal</td>
+    </tr>`;
+    html += '</tbody></table>';
+    const totalLo = data.currentIntakeLo + pLo;
+    const totalHi = data.currentIntakeHi + pHi;
+    html += `<div style="margin-top:8px;font-size:13px;">
+      예정대로 먹는다면 오늘 총 섭취량은 <strong>약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</strong>로 예상돼요.
+    </div>`;
+    html += `<div style="margin-top:6px;font-size:13px;color:var(--muted);">
+      ${data.plannedComparison || ''}
+    </div>`;
+    plannedEl.innerHTML = html;
+    $('plannedSection').classList.remove('hidden');
+  } else {
+    plannedEl.innerHTML = '<div class="empty">예정된 식사가 없어요.</div>';
+    $('plannedSection').classList.add('hidden');
+  }
+
+  // 전략
+  $('strategyContent').innerHTML =
+    `<div class="strategy-box">${esc(data.strategy || '계산된 전략이 없어요.')}</div>`;
+}
+
+// 프로필
+$('saveProfileBtn').addEventListener('click', () => {
+  const gender = $('gender').value;
+  const age = parseInt($('age').value, 10);
+  const height = parseFloat($('height').value);
+  const weight = parseFloat($('weight').value);
+  const goal = $('goal').value;
+  if (!gender || !age || !height || !weight || !goal) {
+    alert('모든 항목을 입력해주세요.');
+    return;
+  }
+  if (height < 120 || height > 250) {
+    alert('키 입력이 이상해요. 120cm 이상 250cm 이하로 입력해주세요.');
+    return;
+  }
+  if (weight < 30 || weight > 300) {
+    alert('체중 입력이 이상해요. 30kg 이상 300kg 이하로 입력해주세요.');
+    return;
+  }
+  saveProfile({ gender, age, height, weight, goal });
+  displayProfile({ gender, age, height, weight, goal });
+});
+
+$('resetProfileBtn').addEventListener('click', resetProfile);
+$('resetProfileBtn2').addEventListener('click', resetProfile);
+
+function resetProfile() {
+  localStorage.removeItem(LS_PROFILE_KEY);
+  $('profileForm').classList.remove('hidden');
+  $('profileSaved').classList.add('hidden');
+  $('age').value = '';
+  $('height').value = '';
+  $('weight').value = '';
+}
+
+// 오늘
+$('saveTodayBtn').addEventListener('click', runCalc);
+
+$('clearTodayBtn').addEventListener('click', () => {
+  if (!confirm('오늘 기록을 초기화할까요?')) return;
+  clearToday();
+  $('eatenFoods').value = '';
+  $('plannedFoods').value = '';
+  $('activityLevel').value = '1.55';
+  hideElem('resultSection');
+});
+
+// 초기 로딩
+(function init() {
+  const profile = loadProfile();
+  if (profile) {
+    displayProfile(profile);
+  } else {
+    renderProfileForm(null);
+  }
+  const today = loadToday();
+  $('dateLabel').textContent = '오늘의 기록 · ' + todayKey();
+  if (today) {
+    renderTodayForm(today);
+  }
+  // 자동 계산: 프로필 있고 오늘 기록 있으면 실행
+  if (profile && today && (today.eatenFoods || today.plannedFoods)) {
+    // 약간의 지연 후 실행 (DOM 준비 완료 후)
+    setTimeout(runCalc, 300);
+  }
+})();
+</script>
+</body>
+</html>
