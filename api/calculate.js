@@ -68,6 +68,17 @@ export default async function handler(req, res) {
   const foods = foodsResult.foods || [];
   const plannedFoodsResult = foodsResult.plannedFoods || [];
 
+  // 범위 밖 요청 검증: 입력된 eatenFoods + plannedFoods 전체가 전부 음식이 아닌 경우(재요청)
+  const allFoods = [...foods, ...plannedFoodsResult];
+  const allNonFood =
+    allFoods.length > 0 &&
+    allFoods.every((f) => f.calLow === 0 && f.calHigh === 0);
+  if (allNonFood) {
+    return res.status(400).json({
+      error: '입력한 내용 중 음식이 아닌 항목이 있어요. 실제 먹은 음식과 양을 알려주시면 계산해드릴게요.',
+    });
+  }
+
   // 현재 섭취량 계산 (하한 합계 ~ 상한 합계)
   const currentIntakeLo = foods.reduce((s, f) => s + (f.calLow ?? 0), 0);
   const currentIntakeHi = foods.reduce((s, f) => s + (f.calHigh ?? 0), 0);
