@@ -36,9 +36,11 @@ export default async function handler(req, res) {
     // 기존 형식은 줄별로 음식 나열 — 아침으로 통합 (구 형식 마이그레이션)
     if (!meals.breakfast) meals.breakfast = body.eatenFoods.trim();
   }
-  // Solar 호출용 텍스트 배열 생성 (빈 값 제외)
+  // Solar 호출용 텍스트 배열 생성 (빈 값 제외) — 끼니 구분자 포함
   const mealTexts = mealKeys.filter(k => meals[k] && meals[k].trim()).map(k => meals[k].trim());
-  const eatenFoodsForSolar = mealTexts.length > 0 ? mealTexts : [];
+  const eatenFoodsForSolar = mealTexts.length > 0
+    ? mealTexts.map((text, idx) => `${mealKeys[idx]}: ${text}`)
+    : [];
 
   const { profile, activityLevel, plannedFoods } = body;
 
@@ -189,17 +191,24 @@ async function interpretFoodsWithSolar(eatenFoods, plannedFoods) {
   "calLow": 숫자 (하한 kcal),
   "calHigh": 숫자 (상한 kcal),
   "note": "참고 문구 (있다면, 없으면 생략)",
-  "isPlanned": boolean (예정 음식이면 true, 먹은 음식이면 false)
+  "isPlanned": boolean (예정 음식이면 true, 먹은 음식이면 false),
+  "mealType": "breakfast" | "lunch" | "dinner" | "snack" | "planned"
 }
+
+mealType 규칙:
+- 각 먹은 음식 앞에 [breakfast], [lunch], [dinner], [snack] 중 하나의 태그를 붙여 전달했어. 해당 태그는 그 음식이 속한 끼니를 의미해.
+- 먹은 음식의 mealType은 전달받은 태그와 동일한 값("breakfast", "lunch", "dinner", "snack")으로 설정해.
+- 예정 음식은 mealType을 "planned"로 해.
+- 태그가 애매하면 mealType을 "planned"로 해.
 
 규칙:
 - calories는 추정치/범위로만 제시. 정확한 값이라 단정하지 마.
-- 일반적인 1인분 기준,Recipe·양·브랜드에 따라 달라지면 그 점을 note에 적어.
+- 일반적인 1인분 기준, 레시피·양·브랜드에 따라 달라지면 그 점을 note에 적어.
 - 양을 알 수 없는 애매한 표현이면 calLow와 calHigh를 넉넉하게 잡고 note에 "추정"이라고 적어.
 - 한식·육류·간식 등 일반적인 음식 참조를 사용해.
 - 명확히 불가능한 음식(예: 음식이 아닌 것)이 있으면 calLow=0, calHigh=0, note="추정 불가"로 해.
 
-음식 목록: ${allFoods.map((f, i) => `${isEaten[i] ? '[먹은]' : '[예정]'} ${f}`).join('\n')}
+음식 목록: ${allFoods.map((f, i) => `${isEaten[i] ? '' : '[예정] '}${f}`).join('\\n')}
 
 결과 JSON만 반환해.`;
 
@@ -259,7 +268,8 @@ async function interpretFoodsWithSolar(eatenFoods, plannedFoods) {
       const calHigh = typeof item.calHigh === 'number' ? item.calHigh : 0;
       const note = item.note || '';
       const isPlanned = item.isPlanned === true;
-      const entry = { name, qty, calLow, calHigh, note, isPlanned };
+      const mealType = item.mealType || 'breakfast';
+      const entry = { name, qty, calLow, calHigh, note, isPlanned, mealType };
       if (isPlanned) {
         plannedFoodsResult.push(entry);
       } else {
