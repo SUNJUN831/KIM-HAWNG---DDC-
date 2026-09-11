@@ -171,6 +171,175 @@
     margin-bottom: 10px;
   }
   .hidden { display: none; }
+
+  /* 토스 스타일 — 오늘 입력 섹션 */
+  .today-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px 20px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    margin-bottom: 12px;
+  }
+  .today-card .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 14px 0;
+    letter-spacing: -0.2px;
+  }
+  .today-card .date-label-toss {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 16px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .today-card .date-label-toss strong {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .form-row-toss {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .form-row-toss label {
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 80px;
+    color: #64748b;
+    padding-top: 9px;
+    letter-spacing: 0.2px;
+  }
+  .form-row-toss input,
+  .form-row-toss select,
+  .form-row-toss textarea {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #0f172a;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .form-row-toss input:focus,
+  .form-row-toss select:focus,
+  .form-row-toss textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  }
+  .form-row-toss input::placeholder,
+  .form-row-toss textarea::placeholder {
+    color: #94a3b8;
+  }
+  .form-row-toss textarea {
+    min-height: 72px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .form-row-toss select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+    cursor: pointer;
+  }
+
+  .inline-btns-toss {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-toss {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    font-family: inherit;
+    letter-spacing: -0.1px;
+  }
+  .btn-toss:active { transform: translateY(0); }
+  .btn-toss.primary {
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+  }
+  .btn-toss.primary:hover {
+    background: #1d4ed8;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.30);
+    transform: translateY(-1px);
+  }
+  .btn-toss.secondary {
+    background: #f1f5f9;
+    color: #334155;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .btn-toss.secondary:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+  }
+  .btn-toss.danger {
+    background: #fee2e2;
+    color: #dc2626;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .btn-toss.danger:hover {
+    background: #fecaca;
+    transform: translateY(-1px);
+  }
+
+  .divider-toss {
+    width: 100%;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 16px 0 12px;
+  }
+
+  .note-toss {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 12px;
+    line-height: 1.4;
+  }
+
+  /* 추천 음식 버튼 — 토스 스타일 */
+  .rec-food-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    width: 100%;
+    margin-bottom: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    font-family: inherit;
+  }
+  .rec-food-btn:hover {
+    background: #f9fafb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.10);
+    transform: translateY(-1px);
+  }
+  .rec-food-btn:active { transform: translateY(0); }
 </style>
 </head>
 <body>
@@ -368,8 +537,9 @@ function showElem(id) { $(id).classList.remove('hidden'); }
 function hideElem(id) { $(id).classList.add('hidden'); }
 
 function fmt(n) {
-  // 반올림하여 정수 표시
-  return Math.round(n).toLocaleString();
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '—';
+  return Math.round(v).toLocaleString();
 }
 
 function displayProfile(p) {
@@ -443,17 +613,39 @@ function renderHistoryList() {
     }[h.activityLevel] || h.activityLevel;
     const eaten = h.eatenFoods ? h.eatenFoods.split('\n').map(s => s.trim()).filter(Boolean).join(', ') : '';
     const planned = h.plannedFoods ? h.plannedFoods.split('\n').map(s => s.trim()).filter(Boolean).join(', ') : '';
+    const lo = h.totalCalLo != null ? fmt(h.totalCalLo) : '—';
+    const hi = h.totalCalHi != null ? fmt(h.totalCalHi) : '—';
     html += `<tr>
       <td>${esc(date)}</td>
       <td>${esc(levelLabel)}</td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(eaten || '—')}</td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(planned || '—')}</td>
-      <td style="white-space:nowrap;">약 ${calLo}~${calHi} kcal</td>
+      <td style="white-space:nowrap;">약 ${lo}~${hi} kcal</td>
       <td><button class="btn danger" style="padding:4px 8px;font-size:11px;" data-delete-date="${esc(date)}">삭제</button></td>
     </tr>`;
   }
   html += '</tbody></table>';
   el.innerHTML = html;
+
+  // 삭제 버튼 클릭 이벤트 바인딩
+  el.querySelectorAll('[data-delete-date]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const date = btn.getAttribute('data-delete-date');
+      deleteHistoryEntry(date);
+    });
+  });
+}
+
+function deleteHistoryEntry(date) {
+  const raw = localStorage.getItem('ddc_history');
+  let history = [];
+  if (raw) {
+    try { history = JSON.parse(raw); } catch { history = []; }
+  }
+  if (!Array.isArray(history)) history = [];
+  const filtered = history.filter(h => h.date !== date);
+  localStorage.setItem('ddc_history', JSON.stringify(filtered));
+  renderHistoryList();
 }
 
 async function runCalc() {
@@ -508,6 +700,7 @@ async function runCalc() {
   }
 }
 
+
 function updateTodayHistoryCalories(data) {
   const raw = localStorage.getItem('ddc_history');
   let history = [];
@@ -523,11 +716,11 @@ function updateTodayHistoryCalories(data) {
     eatenFoods: $('eatenFoods').value.trim(),
     plannedFoods: $('plannedFoods').value.trim(),
     savedAt: new Date().toISOString(),
-    totalCalLo: data.currentIntakeLo,
-    totalCalHi: data.currentIntakeHi,
-    targetCal: data.targetCalories,
-    remainingLo: data.remainingLo,
-    remainingHi: data.remainingHi
+    totalCalLo: Number(data.currentIntakeLo) || 0,
+    totalCalHi: Number(data.currentIntakeHi) || 0,
+    targetCal: Number(data.targetCalories) || 0,
+    remainingLo: Number(data.remainingLo) || 0,
+    remainingHi: Number(data.remainingHi) || 0
   };
   if (existingIndex >= 0) {
     history[existingIndex] = entry;
@@ -539,39 +732,54 @@ function updateTodayHistoryCalories(data) {
 }
 
 function renderResult(data) {
+  // 응답 필드 방어적 정규화
+  const bmr = Number(data.bmr) || 0;
+  const todayConsumption = Number(data.todayConsumption) || 0;
+  const targetCalories = Number(data.targetCalories) || 0;
+  const currentIntakeLo = Number(data.currentIntakeLo) || 0;
+  const currentIntakeHi = Number(data.currentIntakeHi) || 0;
+  const remainingLo = Number(data.remainingLo) || 0;
+  const remainingHi = Number(data.remainingHi) || 0;
+  const foods = Array.isArray(data.foods) ? data.foods : [];
+  const plannedFoods = Array.isArray(data.plannedFoods) ? data.plannedFoods : [];
+  const strategy = typeof data.strategy === 'string' ? data.strategy : '';
+  const recommendedFoods = Array.isArray(data.recommendedFoods) ? data.recommendedFoods : [];
+  const plannedComparison = typeof data.plannedComparison === 'string' ? data.plannedComparison : '';
+  const goal = typeof data.goal === 'string' ? data.goal : 'maintain';
+
   // 요약
-  $('bmrValue').textContent = fmt(data.bmr) + ' kcal';
-  $('tdeeValue').textContent = fmt(data.todayConsumption) + ' kcal';
-  const goalLabel = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
-  $('goalValue').textContent = fmt(data.targetCalories) + ' kcal (' + goalLabel + ')';
-  $('currentIntakeValue').textContent = '약 ' + fmt(data.currentIntakeLo) + '~' + fmt(data.currentIntakeHi) + ' kcal';
-  $('remainingValue').textContent = '약 ' + fmt(data.remainingLo) + '~' + fmt(data.remainingHi) + ' kcal';
+  $('bmrValue').textContent = fmt(bmr) + ' kcal';
+  $('tdeeValue').textContent = fmt(todayConsumption) + ' kcal';
+  const goalLabel = goal === 'loss' ? '감량' : goal === 'maintain' ? '유지' : '증량';
+  $('goalValue').textContent = fmt(targetCalories) + ' kcal (' + goalLabel + ')';
+  $('currentIntakeValue').textContent = '약 ' + fmt(currentIntakeLo) + '~' + fmt(currentIntakeHi) + ' kcal';
+  $('remainingValue').textContent = '약 ' + fmt(remainingLo) + '~' + fmt(remainingHi) + ' kcal';
 
   // 목표 비교
-  const goalLabel2 = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
-  $('goalNote').textContent = '현재 추정치상 ' + goalLabel2 + ' 목표(' + fmt(data.targetCalories) + ' kcal) 대비 상태예요.';
+  const goalLabel2 = goal === 'loss' ? '감량' : goal === 'maintain' ? '유지' : '증량';
+  $('goalNote').textContent = '현재 추정치상 ' + goalLabel2 + ' 목표(' + fmt(targetCalories) + ' kcal) 대비 상태예요.';
 
   // 음식 기록
-  renderFoodLog(data.foods);
+  renderFoodLog(foods);
 
-  // 예정 식사
+  // 예정 meal
   const plannedEl = $('plannedContent');
-  if (data.plannedFoods && data.plannedFoods.length > 0) {
+  if (plannedFoods.length > 0) {
     const parts = [];
-    for (const f of data.plannedFoods) {
+    for (const f of plannedFoods) {
       const lo = f.calLow != null ? fmt(f.calLow) : '—';
       const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
-      let txt = esc(f.name);
+      let txt = esc(f.name || '알 수 없음');
       if (f.qty) txt += `(${esc(f.qty)})`;
       txt += ` 약 ${lo}~${hi} kcal`;
       if (f.note) txt += ` — ${esc(f.note)}`;
       parts.push(txt);
     }
-    const pLo = data.plannedFoods.reduce((s,f) => s + (f.calLow ?? 0), 0);
-    const pHi = data.plannedFoods.reduce((s,f) => s + (f.calHigh ?? 0), 0);
-    const totalLo = data.currentIntakeLo + pLo;
-    const totalHi = data.currentIntakeHi + pHi;
-    plannedEl.innerHTML = `<div style="font-size:13px;line-height:1.6;">${parts.join(', ')}<br><div style="font-weight:600;margin-top:8px;">예정 식사 합계 약 ${fmt(pLo)}~${fmt(pHi)} kcal</div><div style="margin-top:8px;font-size:13px;">예정대로 먹는다면 오늘 총 섭취량은 <strong>약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</strong>로 예상돼요.</div><div style="margin-top:6px;font-size:13px;color:var(--muted);">${data.plannedComparison || ''}</div></div>`;
+    const pLo = plannedFoods.reduce((s, f) => s + (Number(f.calLow) || 0), 0);
+    const pHi = plannedFoods.reduce((s, f) => s + (Number(f.calHigh) || 0), 0);
+    const totalLo = currentIntakeLo + pLo;
+    const totalHi = currentIntakeHi + pHi;
+    plannedEl.innerHTML = `<div style="font-size:13px;line-height:1.6;">${parts.join(', ')}<br><div style="font-weight:600;margin-top:8px;">예정 meal 합계 약 ${fmt(pLo)}~${fmt(pHi)} kcal</div><div style="margin-top:8px;font-size:13px;">예정대로 먹는다면 오늘 총 섭취량은 <strong>약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</strong>로 예상돼요.</div><div style="margin-top:6px;font-size:13px;color:var(--muted);">${plannedComparison}</div></div>`;
     $('plannedSection').classList.remove('hidden');
   } else {
     plannedEl.innerHTML = '<div class="empty">예정된 식사가 없어요.</div>';
@@ -580,62 +788,158 @@ function renderResult(data) {
 
   // 전략
   $('strategyContent').innerHTML =
-    `<div class="strategy-box">${esc(data.strategy || '계산된 전략이 없어요.')}</div>`;
+    `<div class="strategy-box">${esc(strategy || '계산된 전략이 없어요.')}</div>`;
 
-  // 추천 음식 (프론트 기반 MVP: 솔라 응답 대신 계산 결과로 3개 추천)
-  renderRecommendedFoods(data);
+  // 추천 음식 (Solar 추천 그대로 표시)
+  renderRecommendedFoods({ recommendedFoods });
+}
+
+// 음식 풀: 프론트 조합 추천용 (MVP 단계, 식약처 API 연동 없이 운영)
+const FOOD_POOL = [
+  { name: '잡곡밥', unit: '1공기', q: '약 210g', calLow: 280, calHigh: 340, p: 6, c: 55, f: 3 },
+  { name: '흰쌀밥', unit: '1공기', q: '약 210g', calLow: 300, calHigh: 360, p: 5, c: 68, f: 1 },
+  { name: '소고기 볶음', unit: '1인분', q: '약 200g', calLow: 450, calHigh: 650, p: 30, c: 20, f: 25 },
+  { name: '닭갈비', unit: '1인분', q: '약 1인분', calLow: 600, calHigh: 850, p: 25, c: 35, f: 30 },
+  { name: '초밥 세트', unit: '1세트', q: '약 10~12피스', calLow: 500, calHigh: 700, p: 22, c: 70, f: 12 },
+  { name: '김치찌개 + 밥', unit: '1인분', q: '1인분', calLow: 450, calHigh: 650, p: 25, c: 55, f: 15 },
+  { name: '돈까스', unit: '1인분', q: '1인분', calLow: 600, calHigh: 800, p: 25, c: 50, f: 30 },
+  { name: '떡볶이 + 튀김', unit: '약 1인분', q: '1인분', calLow: 500, calHigh: 750, p: 15, c: 80, f: 20 },
+  { name: '연어 샐러드', unit: '1접시', q: '1접시', calLow: 300, calHigh: 450, p: 22, c: 20, f: 18 },
+  { name: '두부 정식', unit: '1인분', q: '1인분', calLow: 350, calHigh: 500, p: 24, c: 30, f: 15 },
+  { name: '닭가슴살 덮밥', unit: '1인분', q: '약 1공기 분량', calLow: 400, calHigh: 550, p: 32, c: 50, f: 10 },
+  { name: '맑은 국물 + 밥', unit: '1그릇', q: '1그릇', calLow: 250, calHigh: 400, p: 15, c: 45, f: 5 },
+  { name: '샐러드 + 닭가슴살', unit: '1인분', q: '1인분', calLow: 300, calHigh: 450, p: 30, c: 20, f: 10 },
+  { name: '계란말이 + 밥', unit: '1인분', q: '1인분', calLow: 300, calHigh: 450, p: 20, c: 45, f: 10 },
+  { name: '두부', unit: '1/2모', q: '약 150g', calLow: 110, calHigh: 140, p: 12, c: 4, f: 8 },
+  { name: '나물 반찬', unit: '1접시', q: '약 80~100g', calLow: 40, calHigh: 70, p: 3, c: 6, f: 2 },
+  { name: '견과류', unit: '한 줌', q: '약 20g', calLow: 110, calHigh: 140, p: 4, c: 5, f: 10 },
+  { name: '치킨 후라이드 1마리', unit: '1마리', q: '약 1마리(900g 내외)', calLow: 1800, calHigh: 2400, p: 120, c: 100, f: 80 },
+  { name: '치킨 후라이드 반마리', unit: '반마리', q: '약 450g', calLow: 900, calHigh: 1200, p: 60, c: 50, f: 40 },
+  { name: '피자 1판(일반)', unit: '1판', q: '약 1판(8조각)', calLow: 1800, calHigh: 2600, p: 80, c: 200, f: 70 },
+  { name: '피자 2조각', unit: '2조각', q: '약 2조각', calLow: 450, calHigh: 650, p: 20, c: 50, f: 18 },
+  { name: '김치볶음밥', unit: '1인분', q: '약 1공기', calLow: 550, calHigh: 750, p: 15, c: 80, f: 20 },
+  { name: '떡국', unit: '1그릇', q: '1그릇', calLow: 450, calHigh: 600, p: 15, c: 75, f: 10 },
+  { name: '부대찌개 + 밥', unit: '1인분', q: '1인분', calLow: 700, calHigh: 950, p: 35, c: 70, f: 30 },
+  { name: '삼겹살', unit: '1인분', q: '약 200g(구이)', calLow: 550, calHigh: 750, p: 40, c: 5, f: 40 },
+  { name: '족발/보쌈', unit: '1인분', q: '약 200g', calLow: 500, calHigh: 700, p: 45, c: 10, f: 30 },
+  { name: '빵 + 잼/버터', unit: '2~3조각', q: '약 2~3조각', calLow: 350, calHigh: 500, p: 10, c: 55, f: 15 },
+  { name: '라면 + 계란', unit: '1인분+계란1', q: '1인분+계란1개', calLow: 500, calHigh: 650, p: 20, c: 70, f: 20 },
+  { name: '파스타(크림/토마토)', unit: '1인분', q: '약 1인분', calLow: 500, calHigh: 700, p: 20, c: 65, f: 18 }
+];
+
+// 남은 칼로리 범위를 타겟으로 음식 추천 조합 생성 (탄단지 대략 고려)
+function recommendCombinations(remainingLo, remainingHi, goal) {
+  if (!Number.isFinite(remainingLo) || !Number.isFinite(remainingHi) || remainingHi <= 0) return [];
+  const targetMid = Math.round((remainingLo + remainingHi) / 2);
+
+  const pick = (pool, minCals, maxCals, preferHighProtein) => {
+    const sorted = [...pool].filter(f => f.calHigh >= minCals && f.calLow <= maxCals);
+    if (preferHighProtein) sorted.sort((a, b) => (b.p / b.calLow) - (a.p / a.calLow));
+    else sorted.sort((a, b) => Math.abs((a.calLow + a.calHigh) / 2 - targetMid) - Math.abs((b.calLow + b.calHigh) / 2 - targetMid));
+    return sorted.slice(0, 6);
+  };
+
+  const highProtein = pick(FOOD_POOL, remainingLo, remainingHi, true);
+  const balance = pick(FOOD_POOL, remainingLo, remainingHi, false);
+
+  // 남은 칼로리가 넉넉하면 2개 조합도 고려
+  const combos = [];
+  if (targetMid >= 500) {
+    for (let i = 0; i < FOOD_POOL.length; i++) {
+      for (let j = i + 1; j < FOOD_POOL.length; j++) {
+        const a = FOOD_POOL[i];
+        const b = FOOD_POOL[j];
+        const comboLo = a.calLow + b.calLow;
+        const comboHi = a.calHigh + b.calHigh;
+        if (comboLo <= remainingHi && comboHi >= remainingLo) {
+          const comboTotal = Math.round((comboLo + comboHi) / 2);
+          const comboProtein = a.p + b.p;
+          // 중복 방지: 이름 알파벳 순으로 정렬하여 항상 같은 방향으로 표시
+          const sortedPair = [a, b].sort((x, y) => x.name.localeCompare(y.name));
+          combos.push({
+            name: `${sortedPair[0].name} + ${sortedPair[1].name}`,
+            qty: `${sortedPair[0].q} + ${sortedPair[1].q}`,
+            calLow: comboLo,
+            calHigh: comboHi,
+            note: `대략 단백질 ${comboProtein}g 추정, 탄단지 균형형 조합`,
+            isCombo: true
+          });
+        }
+      }
+    }
+    // 칼로리 높은 순으로 정렬 (남은 칼로리 범위 우선 채우기)
+    combos.sort((x, y) => (y.calHigh + y.calLow) - (x.calHigh + x.calLow));
+  }
+
+  // 단일 추천은 목표별 성향 반영
+  let singles;
+  if (goal === 'gain') {
+    singles = pick(FOOD_POOL, remainingLo, remainingHi, true).map(f => ({
+      ...f,
+      note: f.note || `단백질 ${f.p}g 내외 추정, 탄단지 균형형`
+    }));
+    singles = [balance[0], highProtein[0], balance[1]].filter(Boolean).slice(0, 4);
+  } else if (goal === 'loss') {
+    singles = pick(FOOD_POOL, remainingLo, remainingHi, true).map(f => ({
+      ...f,
+      note: f.note || `단백질 ${f.p}g 내외 추정, 저칼로리 위주`
+    }));
+    singles = [highProtein[0], balance[0], highProtein[1]].filter(Boolean).slice(0, 4);
+  } else {
+    singles = balance.slice(0, 4).map(f => ({
+      ...f,
+      note: f.note || `탄단지 균형형`
+    }));
+  }
+
+  const out = [];
+  const seen = new Set();
+  for (const f of singles) {
+    if (f && !seen.has(f.name)) {
+      seen.add(f.name);
+      out.push({ name: f.name, qty: f.q, calLow: f.calLow, calHigh: f.calHigh, note: f.note || '' });
+    }
+  }
+  for (const f of combos.slice(0, 2)) {
+    if (!seen.has(f.name)) {
+      seen.add(f.name);
+      out.push(f);
+    }
+  }
+  return out.slice(0, 5);
 }
 
 function renderRecommendedFoods(data) {
   const el = $('recommendedContent');
-  const remainingLo = data.remainingLo ?? 0;
-  const remainingHi = data.remainingHi ?? 0;
-  const goal = data.goal || 'maintain';
-  const profile = loadProfile();
+  if (!el) return;
+  const recommendedFoods = Array.isArray(data?.recommendedFoods) ? data.recommendedFoods : [];
 
-  let candidates = [];
-  if (goal === 'gain') {
-    candidates = [
-      { name: '소고기 볶음', qty: '약 200g', calLow: 450, calHigh: 650 },
-      { name: '초밥 세트', qty: '약 10~12피스', calLow: 500, calHigh: 700 },
-      { name: '닭갈비', qty: '약 1인분', calLow: 600, calHigh: 850 }
-    ];
-  } else if (goal === 'loss') {
-    candidates = [
-      { name: '연어 샐러드', qty: '1접시', calLow: 300, calHigh: 450 },
-      { name: '두부 정식', qty: '1인분', calLow: 350, calHigh: 500 },
-      { name: '닭가슴살 덮밥', qty: '약 1공기 분량', calLow: 400, calHigh: 550 }
-    ];
-  } else {
-    candidates = [
-      { name: '김치찌개 + 밥', qty: '1인분', calLow: 450, calHigh: 650 },
-      { name: '돈까스', qty: '1인분', calLow: 600, calHigh: 800 },
-      { name: '떡볶이 + 튀김', qty: '약 1인분', calLow: 500, calHigh: 750 }
-    ];
-  }
+  console.log('=== [프론트] renderRecommendedFoods 수신 ===');
+  console.log(recommendedFoods);
+  console.log('개수:', recommendedFoods.length);
 
-  // 남은 칼로리가 아주 적으면 더 가벼운 쪽으로 조정
-  if (remainingHi < 400 && goal !== 'gain') {
-    candidates = [
-      { name: '맑은 국물 + 밥', qty: '1그릇', calLow: 250, calHigh: 400 },
-      { name: '샐러드 + 닭가슴살', qty: '1인분', calLow: 300, calHigh: 450 },
-      { name: '계란말이 + 밥', qty: '1인분', calLow: 300, calHigh: 450 }
-    ];
-  }
-
-  if (!candidates || candidates.length === 0) {
-    el.innerHTML = '<div class="empty">추천 음식을 준비하기 어려워요.</div>';
+  if (recommendedFoods.length === 0) {
+    el.innerHTML = '<div class="empty">추천 음식이 준비되지 않았어요.</div>';
     return;
   }
 
   let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
-  for (const f of candidates) {
+  for (const f of recommendedFoods) {
     const lo = f.calLow != null ? fmt(f.calLow) : '—';
     const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
-    html += `<div class="btn" style="justify-content:flex-start;text-align:left;width:100%;margin-bottom:6px;" data-name="${esc(f.name)}" data-qty="${esc(f.qty)}" data-lo="${f.calLow}" data-hi="${f.calHigh}">
-      <strong>${esc(f.name)}</strong> ${esc(f.qty)}
-      <span class="cal-range" style="margin-left:auto;">약 ${lo}~${hi} kcal</span>
-    </div>`;
+    let noteHtml = '';
+    if (f.note) noteHtml = ` <span style="color:#5b6e8a;font-size:12px;">— ${esc(f.note)}</span>`;
+    html += `<button class="rec-food-btn" style="display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;text-align:left;width:100%;margin-bottom:8px;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);cursor:pointer;transition:box-shadow 0.15s ease,transform 0.15s ease;font-family:inherit;" data-name="${esc(f.name || '추천 음식')}" data-qty="${esc(f.qty || '')}" data-lo="${f.calLow}" data-hi="${f.calHigh}">
+      <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+        <span style="color:#2563eb;font-size:16px;line-height:1.4;flex-shrink:0;margin-top:1px;">▸</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:#0f172a;line-height:1.4;">${esc(f.name || '추천 음식')}</div>
+          ${f.qty ? `<div style="font-size:13px;color:#64748b;margin-top:2px;line-height:1.4;">${esc(f.qty)}</div>` : ''}
+          <span style="font-size:13px;font-weight:600;color:#2563eb;background:#eff6ff;padding:3px 10px;border-radius:999px;white-space:nowrap;margin-top:8px;display:inline-block;">약 ${lo}~${hi} kcal</span>
+          ${noteHtml}
+        </div>
+      </div>
+    </button>`;
   }
   html += '</div>';
   html += '<div class="note" style="margin-top:6px;">원하는 음식을 누르면 예정 음식에 추가돼요.</div>';
@@ -680,11 +984,13 @@ function addToPlanned(name, qty, calLow, calHigh) {
 
 // 프로필
 $('saveProfileBtn').addEventListener('click', () => {
+  console.log('[프로필] 저장 버튼 클릭됨');
   const gender = $('gender').value;
   const age = parseInt($('age').value, 10);
   const height = parseFloat($('height').value);
   const weight = parseFloat($('weight').value);
   const goal = $('goal').value;
+  console.log('[프로필] gender:', gender, 'age:', age, 'height:', height, 'weight:', weight, 'goal:', goal);
   if (!gender || !age || !height || !weight || !goal) {
     alert('모든 항목을 입력해주세요.');
     return;
@@ -715,9 +1021,13 @@ function resetProfile() {
 
 // 오늘 기록 저장 (계산 X) — 기록 목록에도 추가 (같은 날짜면 덮어쓰기)
 $('saveTodayBtn').addEventListener('click', () => {
+  console.log('[저장] saveTodayBtn 클릭됨');
   const activityLevel = $('activityLevel').value;
   const eatenRaw = $('eatenFoods').value.trim();
   const plannedRaw = $('plannedFoods').value.trim();
+  console.log('[저장] activityLevel:', activityLevel);
+  console.log('[저장] eatenRaw:', eatenRaw);
+  console.log('[저장] plannedRaw:', plannedRaw);
   saveToday({
     activityLevel,
     eatenFoods: eatenRaw,
@@ -746,13 +1056,22 @@ $('saveTodayBtn').addEventListener('click', () => {
     history.push(entry);  // 새 날짜면 추가
   }
   localStorage.setItem('ddc_history', JSON.stringify(history));
+  console.log('[저장] localStorage 저장 완료, 기록 수:', history.length);
   renderHistoryList();
 });
 
 $('clearTodayBtn').addEventListener('click', () => {
   if (!confirm('오늘 기록을 초기화할까요?')) return;
   clearToday();
-  localStorage.removeItem('ddc_history');
+  // ddc_history에서 오늘 날짜 기록만 삭제 (과거 기록은 유지)
+  const raw = localStorage.getItem('ddc_history');
+  let history = [];
+  if (raw) {
+    try { history = JSON.parse(raw); } catch { history = []; }
+  }
+  if (!Array.isArray(history)) history = [];
+  const filtered = history.filter(h => h.date !== todayKey());
+  localStorage.setItem('ddc_history', JSON.stringify(filtered));
   $('eatenFoods').value = '';
   $('plannedFoods').value = '';
   $('activityLevel').value = '1.55';
