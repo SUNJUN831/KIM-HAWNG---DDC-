@@ -207,6 +207,45 @@
     line-height: 1.6;
     margin-top: 8px;
   }
+  .meal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .meal-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meal-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .meal-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    resize: vertical;
+    min-height: 50px;
+  }
+  .meal-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-bg);
+  }
+  .meal-empty-hint {
+    font-size: 10px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 2px 0;
+  }
   .note {
     font-size: 11px;
     color: var(--muted);
@@ -292,13 +331,30 @@
     </div>
 
     <div class="form-row">
-      <label style="min-width:80px;">먹은 음식</label>
-      <textarea id="eatenFoods" placeholder="예: 라면 1개, 계란 2개, 김밥 한 줄"></textarea>
-    </div>
-
-    <div class="form-row">
       <label style="min-width:80px;">예정 음식 (없으면 비워두세요)</label>
       <textarea id="plannedFoods" placeholder="예: 삼겹살 200g, 치킨 반마리"></textarea>
+    </div>
+
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;">먹은 음식 — 안 먹은 끼니는 비워두세요</div>
+      <div class="meal-grid">
+        <div class="meal-cell">
+          <label class="meal-label" for="mealBreakfast">아침</label>
+          <textarea class="meal-input" id="mealBreakfast" placeholder="예: 밥 한 공기, 계란 프라이 2개, 김"></textarea>
+        </div>
+        <div class="meal-cell">
+          <label class="meal-label" for="mealLunch">점심</label>
+          <textarea class="meal-input" id="mealLunch" placeholder="예: 김치찌개, 밥 한 공기"></textarea>
+        </div>
+        <div class="meal-cell">
+          <label class="meal-label" for="mealDinner">저녁</label>
+          <textarea class="meal-input" id="mealDinner" placeholder="예: 삼겹살 200g, 상추, 쌈장"></textarea>
+        </div>
+        <div class="meal-cell">
+          <label class="meal-label" for="mealSnack">간식</label>
+          <textarea class="meal-input" id="mealSnack" placeholder="예: 바나나 1개, 견과류 한 줌"></textarea>
+        </div>
+      </div>
     </div>
 
     <div class="inline-btns">
@@ -342,6 +398,11 @@
     <div class="card">
       <div class="card-title">오늘 먹은 음식</div>
       <div id="foodLog"><div class="empty">아직 먹은 음식이 없어요.</div></div>
+    </div>
+
+    <div class="card" id="mealSummarySection">
+      <div class="card-title">끼니별 요약</div>
+      <div id="mealSummary"><div class="empty">끼니별 기록이 없어요.</div></div>
     </div>
 
     <div class="card" id="plannedSection">
@@ -436,13 +497,72 @@ function renderProfileForm(p) {
 
 function renderTodayForm(t) {
   if (!t) return;
-  $('activityLevel').value = t.activityLevel;
-  $('eatenFoods').value = t.eatenFoods || '';
+  $('activityLevel').value = t.activityLevel || '1.55';
+  // meals 복원 (새 형식)
+  if (t.meals && typeof t.meals === 'object' && !Array.isArray(t.meals)) {
+    $('mealBreakfast').value = (t.meals.breakfast || '').trim();
+    $('mealLunch').value = (t.meals.lunch || '').trim();
+    $('mealDinner').value = (t.meals.dinner || '').trim();
+    $('mealSnack').value = (t.meals.snack || '').trim();
+  } else {
+    // 하위 호환: 기존 eatenFoods 단일 구조 — meals textarea는 비워둠 (과거 기록을 끼니로 분류하지 않음)
+    $('mealBreakfast').value = '';
+    $('mealLunch').value = '';
+    $('mealDinner').value = '';
+    $('mealSnack').value = '';
+  }
   $('plannedFoods').value = t.plannedFoods || '';
 }
 
-function renderFoodLog(foods) {
+function renderFoodLog(foods, meals) {
   const el = $('foodLog');
+  const mealKeys = [
+    { key: 'breakfast', label: '아침' },
+    { key: 'lunch', label: '점심' },
+    { key: 'dinner', label: '저녁' },
+    { key: 'snack', label: '간식' },
+  ];
+
+  // meals 기준 끼니별 렌더링 (하위 호환: meals 없으면 기존 foods 표시)
+  if (meals && typeof meals === 'object' && !Array.isArray(meals)) {
+    let html = '';
+    let hasAny = false;
+
+    for (const { key, label } of mealKeys) {
+      const mealFoods = Array.isArray(meals[key]) ? meals[key] : [];
+      if (mealFoods.length === 0) continue;
+      hasAny = true;
+      html += `<div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">${esc(label)}</div>
+        <table class="food-table">
+          <thead><tr><th>음식</th><th>추정 칼로리</th></tr></thead>
+          <tbody>`;
+      for (const f of mealFoods) {
+        const lo = f.calLow != null ? fmt(f.calLow) : '—';
+        const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
+        html += `<tr>
+          <td><strong>${esc(f.name)}</strong> ${esc(f.qty || '')}</td>
+          <td class="cal-range">약 ${lo}~${hi} kcal${f.note ? '<br><span style="color:var(--muted);font-size:11px;">'+esc(f.note)+'</span>' : ''}</td>
+        </tr>`;
+      }
+      const mLo = mealFoods.reduce((s, f) => s + (f.calLow ?? 0), 0);
+      const mHi = mealFoods.reduce((s, f) => s + (f.calHigh ?? 0), 0);
+      html += `<tr style="font-weight:600;background:#f9fafb;">
+        <td>${label} 합계</td>
+        <td class="cal-range">약 ${fmt(mLo)}~${fmt(mHi)} kcal</td>
+      </tr>`;
+      html += '</tbody></table></div>';
+    }
+
+    if (!hasAny) {
+      html = '<div class="empty">아직 먹은 음식이 없어요.</div>';
+    }
+
+    el.innerHTML = html;
+    return;
+  }
+
+  // 하위 호환: meals 없을 때 기존 foods 배열 표시
   if (!foods || foods.length === 0) {
     el.innerHTML = '<div class="empty">아직 먹은 음식이 없어요.</div>';
     return;
@@ -481,13 +601,21 @@ async function runCalc() {
   }
 
   const activityLevel = $('activityLevel').value;
-  const eatenRaw = $('eatenFoods').value.trim();
+  const mealBreakfast = $('mealBreakfast').value.trim();
+  const mealLunch = $('mealLunch').value.trim();
+  const mealDinner = $('mealDinner').value.trim();
+  const mealSnack = $('mealSnack').value.trim();
   const plannedRaw = $('plannedFoods').value.trim();
 
-  // 오늘 기록 저장 (계산 전)
+  // 오늘 기록 저장 (계산 전) — meals 구조로 저장
   saveToday({
     activityLevel,
-    eatenFoods: eatenRaw,
+    meals: {
+      breakfast: mealBreakfast,
+      lunch: mealLunch,
+      dinner: mealDinner,
+      snack: mealSnack,
+    },
     plannedFoods: plannedRaw,
     savedAt: new Date().toISOString()
   });
@@ -495,7 +623,12 @@ async function runCalc() {
   const payload = {
     profile,
     activityLevel: parseFloat(activityLevel),
-    eatenFoods: eatenRaw ? eatenRaw.split('\n').map(s => s.trim()).filter(Boolean) : [],
+    meals: {
+      breakfast: mealBreakfast,
+      lunch: mealLunch,
+      dinner: mealDinner,
+      snack: mealSnack,
+    },
     plannedFoods: plannedRaw ? plannedRaw.split('\n').map(s => s.trim()).filter(Boolean) : []
   };
 
@@ -537,7 +670,7 @@ function renderResult(data) {
   $('goalNote').textContent = '현재 추정치상 ' + goalLabel2 + ' 목표(' + fmt(data.targetCalories) + ' kcal) 대비 상태예요.';
 
   // 음식 기록
-  renderFoodLog(data.foods);
+  renderFoodLog(data.foods, data.meals);
 
   // 예정 식사
   const plannedEl = $('plannedContent');
@@ -579,6 +712,45 @@ function renderResult(data) {
 
   // 추천 음식 (4개 카드)
   renderSuggestions(data.mealSuggestions);
+}
+
+function renderMealSummary(foods, meals) {
+  const el = $('mealSummary');
+  const mealKeys = [
+    { key: 'breakfast', label: '아침' },
+    { key: 'lunch', label: '점심' },
+    { key: 'dinner', label: '저녁' },
+    { key: 'snack', label: '간식' },
+  ];
+
+  if (meals && typeof meals === 'object' && !Array.isArray(meals)) {
+    let html = '';
+    let hasAny = false;
+    for (const { key, label } of mealKeys) {
+      const mealFoods = Array.isArray(meals[key]) ? meals[key] : [];
+      if (mealFoods.length === 0) continue;
+      hasAny = true;
+      const mLo = mealFoods.reduce((s, f) => s + (f.calLow ?? 0), 0);
+      const mHi = mealFoods.reduce((s, f) => s + (f.calHigh ?? 0), 0);
+      html += `<div style="margin-bottom:8px;font-size:13px;">
+        <strong>${esc(label)}</strong>: 약 ${fmt(mLo)}~${fmt(mHi)} kcal
+        (${mealFoods.length}개 항목)
+      </div>`;
+    }
+    if (!hasAny) {
+      html = '<div class="empty">끼니별 기록이 없어요.</div>';
+    }
+    el.innerHTML = html;
+    return;
+  }
+
+  if (!foods || foods.length === 0) {
+    el.innerHTML = '<div class="empty">끼니별 기록이 없어요.</div>';
+    return;
+  }
+  const totalLo = foods.reduce((s, f) => s + (f.calLow ?? 0), 0);
+  const totalHi = foods.reduce((s, f) => s + (f.calHigh ?? 0), 0);
+  el.innerHTML = `<div style="font-size:13px;">전체: 약 ${fmt(totalLo)}~${fmt(totalHi)} kcal (${foods.length}개 항목)</div>`;
 }
 
 function renderSuggestions(suggestions) {
@@ -644,7 +816,10 @@ $('saveTodayBtn').addEventListener('click', runCalc);
 $('clearTodayBtn').addEventListener('click', () => {
   if (!confirm('오늘 기록을 초기화할까요?')) return;
   clearToday();
-  $('eatenFoods').value = '';
+  $('mealBreakfast').value = '';
+  $('mealLunch').value = '';
+  $('mealDinner').value = '';
+  $('mealSnack').value = '';
   $('plannedFoods').value = '';
   $('activityLevel').value = '1.55';
   hideElem('resultSection');
@@ -664,9 +839,13 @@ $('clearTodayBtn').addEventListener('click', () => {
     renderTodayForm(today);
   }
   // 자동 계산: 프로필 있고 오늘 기록 있으면 실행
-  if (profile && today && (today.eatenFoods || today.plannedFoods)) {
-    // 약간의 지연 후 실행 (DOM 준비 완료 후)
-    setTimeout(runCalc, 300);
+  if (profile && today) {
+    const hasMeals = today.meals && typeof today.meals === 'object' && !Array.isArray(today.meals)
+      && Object.values(today.meals).some(v => v && typeof v === 'string' && v.trim());
+    if (hasMeals || today.plannedFoods) {
+      // 약간의 지연 후 실행 (DOM 준비 완료 후)
+      setTimeout(runCalc, 300);
+    }
   }
 })();
 </script>

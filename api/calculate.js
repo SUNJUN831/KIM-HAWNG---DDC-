@@ -21,7 +21,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: '잘못된 요청입니다.' });
   }
 
-  const { profile, activityLevel, eatenFoods, plannedFoods } = body;
+  // meals 구조 받기 (아침/점심/저녁/간식)
+  // 하위 호환: 기존 eatenFoods 문자열도 지원
+  let meals = body.meals || {};
+  if (!meals || typeof meals !== 'object' || Array.isArray(meals)) {
+    meals = {};
+  }
+  const mealKeys = ['breakfast', 'lunch', 'dinner', 'snack'];
+  for (const k of mealKeys) {
+    if (typeof meals[k] !== 'string') meals[k] = '';
+  }
+  // 기존 eatenFoods 문자열도 meals로 변환 (하위 호환)
+  if (typeof body.eatenFoods === 'string' && body.eatenFoods.trim()) {
+    // 기존 형식은 줄별로 음식 나열 — 아침으로 통합 (구 형식 마이그레이션)
+    if (!meals.breakfast) meals.breakfast = body.eatenFoods.trim();
+  }
+  // Solar 호출용 텍스트 배열 생성 (빈 값 제외)
+  const mealTexts = mealKeys.filter(k => meals[k] && meals[k].trim()).map(k => meals[k].trim());
+  const eatenFoodsForSolar = mealTexts.length > 0 ? mealTexts : [];
+
+  const { profile, activityLevel, plannedFoods } = body;
 
   // 프로필 검증
   if (!profile || !profile.gender || !profile.age || profile.height == null || profile.weight == null || !profile.goal) {
@@ -60,7 +79,7 @@ export default async function handler(req, res) {
   }
 
   // 음식 해석: Solar Pro 4 호출 (모델명 solar-pro4 고정)
-  const foodsResult = await interpretFoodsWithSolar(eatenFoods, plannedFoods);
+  const foodsResult = await interpretFoodsWithSolar(eatenFoodsForSolar, plannedFoods);
   if (!foodsResult || foodsResult.error) {
     return res.status(500).json({ error: '음식 해석에 실패했어요: ' + (foodsResult?.error || '알 수 없는 오류') });
   }
@@ -129,6 +148,7 @@ export default async function handler(req, res) {
     remainingHi: Math.round(remainingHi),
     foods,
     plannedFoodsResult,
+    meals,
   });
 
   // 응답 구성 (모든 숫자는 반올림하여 표시, 내부 원값 정보는 제외)
@@ -146,6 +166,7 @@ export default async function handler(req, res) {
     plannedComparison,
     strategy,
     mealSuggestions,
+    meals,
   });
 }
 
@@ -369,9 +390,21 @@ function extractFoodFoodTypes(foodList) {
   return foodTypes;
 }
 
-function generateMealSuggestions({ goal, remainingLo, remainingHi, foods = [], plannedFoodsResult = [] }) {
+function generateMealSuggestions({ goal, remainingLo, remainingHi, foods = [], plannedFoodsResult = [], meals = {} }) {
   const avgRemaining = (remainingLo + remainingHi) / 2;
-  const eatenFoodTypes = extractFoodFoodTypes([...foods, ...plannedFoodsResult]);
+
+  // meals 기반 eatenFoodTypes 추출 (각 끼니의 음식에서 foodTypes 수집)
+  const mealsFoodList = [];
+  const mealKeys = ['breakfast', 'lunch', 'dinner', 'snack'];
+  for (const k of mealKeys) {
+    const items = meals[k] || [];
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item && typeof item.name === 'string') mealsFoodList.push(item);
+      }
+    }
+  }
+  const eatenFoodTypes = extractFoodFoodTypes([...mealsFoodList, ...plannedFoodsResult]);
 
   const pool = [
     { name: "견과류 한 줌 (약 20~30g)", low: 120, high: 200, note: "간식", category: "light", foodTypes: ["견과류"] },
