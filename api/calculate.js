@@ -123,6 +123,14 @@ export default async function handler(req, res) {
 
   const strategy = strategyResult?.strategy || '계산된 전략이 없어요.';
 
+  const mealSuggestions = generateMealSuggestions({
+    goal: profile.goal,
+    remainingLo: Math.round(remainingLo),
+    remainingHi: Math.round(remainingHi),
+    foods,
+    plannedFoodsResult,
+  });
+
   // 응답 구성 (모든 숫자는 반올림하여 표시, 내부 원값 정보는 제외)
   return res.status(200).json({
     bmr: Math.round(bmrRaw),
@@ -136,7 +144,8 @@ export default async function handler(req, res) {
     foods,
     plannedFoods: plannedFoodsResult,
     plannedComparison,
-    strategy
+    strategy,
+    mealSuggestions,
   });
 }
 
@@ -343,3 +352,184 @@ async function generateStrategyWithSolar(context) {
     return { strategy: '전략 생성 중 오류: ' + e.message };
   }
 }
+
+function extractFoodFoodTypes(foodList) {
+  const foodTypes = new Set();
+  const foodTypePatterns = [
+    "김밥", "돈까스", "샌드위치", "salad", "라면", "빵", "요거트", "사과", "견과류",
+  ];
+  for (const food of foodList) {
+    if (typeof food.name !== 'string') continue;
+    for (const ft of foodTypePatterns) {
+      if (food.name.includes(ft)) {
+        foodTypes.add(ft);
+      }
+    }
+  }
+  return foodTypes;
+}
+
+function generateMealSuggestions({ goal, remainingLo, remainingHi, foods = [], plannedFoodsResult = [] }) {
+  const avgRemaining = (remainingLo + remainingHi) / 2;
+  const eatenFoodTypes = extractFoodFoodTypes([...foods, ...plannedFoodsResult]);
+
+  const pool = [
+    { name: "견과류 한 줌 (약 20~30g)", low: 120, high: 200, note: "간식", category: "light", foodTypes: ["견과류"] },
+    { name: "사과 + 플레인 요거트", low: 150, high: 230, note: "가벼운 간식 느낌", category: "light", foodTypes: ["사과", "요거트"] },
+    { name: "계란빵 1개", low: 200, high: 350, note: "간식·간편", category: "light", foodTypes: ["빵"] },
+    { name: "닭가슴살 샐러드 (드레싱 포함)", low: 300, high: 450, note: "가벼운 식사", category: "light", foodTypes: ["salad"] },
+    { name: "참치김밥 1줄", low: 300, high: 500, note: "한 끼 부담 적은 편", category: "normal", foodTypes: ["김밥"] },
+    { name: "샌드위치 (일반 햄/참치 등)", low: 350, high: 500, note: "한 끼로 무난한 편", category: "normal", foodTypes: ["샌드위치"] },
+    { name: "소고기 김밥 1줄", low: 400, high: 600, note: "제법 포만감", category: "heavier", foodTypes: ["김밥"] },
+    { name: "치즈돈까스 작은 조각 (약 2~3조각)", low: 400, high: 650, note: "고열량, 나눠 먹기", category: "heavier", foodTypes: ["돈까스"] },
+  ];
+
+  const filteredPool = pool.filter(item => {
+    if (!item.foodTypes || item.foodTypes.length === 0) return true;
+    return !item.foodTypes.some(ft => eatenFoodTypes.has(ft));
+  });
+
+  const isLowRemaining = remainingLo < 500;
+
+  // 감량일 때는 남은 칼로리가 충분하면 조금 든든한 식사(heavier)도 1개 포함
+  const categoryPlan = {
+    loss: isLowRemaining
+      ? { light: 2, normal: 2, heavier: 0 }
+      : { light: 2, normal: 1, heavier: 1 },
+    maintain: { light: 1, normal: 2, heavier: 1 },
+    gain: { light: 1, normal: 1, heavier: 2 },
+  };
+  const plan = categoryPlan[goal] || categoryPlan.maintain;
+
+  const pickFromCategory = (cat, needed) => {
+    const items = filteredPool
+      .filter(item => item.category === cat)
+      .sort((a, b) => {
+        const aMid = (a.low + a.high) / 2;
+        const bMid = (b.low + b.high) / 2;
+        if (goal === 'loss') {
+          const aFit = Math.abs(aMid - avgRemaining);
+          const bFit = Math.abs(bMid - avgRemaining);
+          return aFit - bFit;
+        }
+        if (goal === 'gain') return bMid - aMid;
+        return 0;
+      });
+    const picked = [];
+    for (const item of items) {
+      if (picked.length >= needed) break;
+      picked.push(item);
+    }
+    return picked;
+  };
+
+  const candidates = [];
+  for (const cat of ['light', 'normal', 'heavier']) {
+    const needed = plan[cat] || 0;
+    if (needed > 0) {
+      const picked = pickFromCategory(cat, needed);
+      candidates.push(...picked);
+    }
+  }
+
+  if (candidates.length < 4) {
+    const usedNames = new Set(candidates.map(c => c.name));
+    const fillCandidates = filteredPool
+      .filter(item => !usedNames.has(item.name))
+      .sort((a, b) => {
+        const aMid = (a.low + a.high) / 2;
+        const bMid = (b.low + b.high) / 2;
+        if (goal === 'loss') {
+          const aFit = Math.abs(aMid - avgRemaining);
+          const bFit = Math.abs(bMid - avgRemaining);
+          return aFit - bFit;
+        }
+        if (goal === 'gain') return bMid - aMid;
+        return 0;
+      });
+    for (const item of fillCandidates) {
+      if (candidates.length >= 4) break;
+      candidates.push(item);
+    }
+  }
+
+  return candidates.slice(0, 4).map((item) => {
+    let note = item.note;
+    if (goal === 'loss' && (item.low + item.high) / 2 > avgRemaining / 2) {
+      note += " 남은 칼로리를 한 끼에 다 채우기보다 나눠 먹는 편이 좋아.";
+    }
+    if (isLowRemaining && (item.low + item.high) / 2 > remainingHi * 0.7) {
+      note += " 남은 칼로리가 많지 않아서, 이걸 먹으면 꽤 찰 수 있어.";
+    }
+    return {
+      name: item.name,
+      rangeLow: item.low,
+      rangeHigh: item.high,
+      category: item.category,
+      note: note,
+    };
+  });
+}
+
+function generateMealSuggestionsOriginal({ goal, remainingLo, remainingHi, foods = [], plannedFoodsResult = [] }) {
+  const suggestions = [];
+  const avgRemaining = (remainingLo + remainingHi) / 2;
+
+  const light = [
+    { name: "견과류 한 줌 (약 20~30g)", low: 120, high: 200, note: "간식" },
+    { name: "사과 + 플레인 요거트", low: 150, high: 230, note: "가벼운 간식 느낌" },
+    { name: "계란빵 1개", low: 200, high: 350, note: "간식·간편" },
+    { name: "닭가슴살 샐러드 (드레싱 포함)", low: 300, high: 450, note: "가벼운 식사" },
+  ];
+  const normal = [
+    { name: "참치김밥 1줄", low: 300, high: 500, note: "한 끼 부담 적은 편" },
+    { name: "샌드위치 (일반 햄/참치 등)", low: 350, high: 500, note: "한 끼로 무난한 편" },
+  ];
+  const heavier = [
+    { name: "소고기 김밥 1줄", low: 400, high: 600, note: "제법 포만감" },
+    { name: "치즈돈까스 작은 조각 (약 2~3조각)", low: 400, high: 650, note: "고열량, 나눠 먹기" },
+  ];
+
+  const pickFrom = (arr, count) => {
+    const picked = [];
+    for (const item of arr) {
+      if (picked.length >= count) break;
+      picked.push(item);
+    }
+    return picked;
+  };
+
+  if (goal === 'loss') {
+    const first = pickFrom(
+      [...light].sort((a, b) => (a.low + a.high) - (b.low + b.high)),
+      2
+    );
+    const second = pickFrom(
+      [...normal].sort((a, b) => (a.low + a.high) - (b.low + b.high)),
+      2
+    );
+    suggestions.push(...first, ...second);
+  } else if (goal === 'gain') {
+    const all = [
+      ...light,
+      ...normal,
+      ...heavier,
+    ].sort((a, b) => (b.low + b.high) - (a.low + a.high));
+    suggestions.push(...pickFrom(all, 4));
+  } else {
+    const all = [...light, ...normal, ...heavier];
+    suggestions.push(...pickFrom(all, 4));
+  }
+
+  return suggestions.slice(0, 4).map((item) => ({
+    name: item.name,
+    rangeLow: item.low,
+    rangeHigh: item.high,
+    note:
+      item.note +
+      (goal === "loss" && (item.low + item.high) / 2 > avgRemaining / 2
+        ? " 남은 칼로리를 한 끼에 다 채우기보다 나눠 먹는 편이 좋아."
+        : ""),
+  }));
+}
+

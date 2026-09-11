@@ -145,6 +145,59 @@
     font-family: "Consolas", monospace;
     white-space: nowrap;
   }
+  .suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .suggestion-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    position: relative;
+  }
+  .suggestion-card .hint-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #fff;
+    pointer-events: none;
+  }
+  .suggestion-card.light .hint-tag { background: #93c5fd; }
+  .suggestion-card.normal .hint-tag { background: #86efac; }
+  .suggestion-card.heavier .hint-tag { background: #fdba74; }
+  .suggestion-card .name {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    padding-right: 50px;
+  }
+  .suggestion-card .range {
+    font-family: "Consolas", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .suggestion-card .note {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.45;
+    margin: 0;
+  }
+  .suggestions-empty {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 8px 0;
+  }
   .strategy-box {
     background: var(--accent-bg);
     border-left: 3px solid var(--accent);
@@ -299,6 +352,11 @@
     <div class="card">
       <div class="card-title">오늘 전략</div>
       <div id="strategyContent"><div class="empty">전략을 계산 중이에요.</div></div>
+    </div>
+
+    <div class="card" id="suggestionsSection">
+      <div class="card-title">오늘 추천 식사 (남은 칼로리 기준)</div>
+      <div id="suggestionsContent"><div class="empty">추천을 계산 중이에요.</div></div>
     </div>
   </section>
 
@@ -518,6 +576,31 @@ function renderResult(data) {
   // 전략
   $('strategyContent').innerHTML =
     `<div class="strategy-box">${esc(data.strategy || '계산된 전략이 없어요.')}</div>`;
+
+  // 추천 음식 (4개 카드)
+  renderSuggestions(data.mealSuggestions);
+}
+
+function renderSuggestions(suggestions) {
+  const target = document.getElementById('suggestionsSection');
+  if (!target) return; // 아직 DOM에 섹션이 없으면 무시 (페이즈 2에서 추가 예정)
+  if (!suggestions || suggestions.length === 0) {
+    target.innerHTML = '<div class="suggestions-empty">추천할 음식이 아직 없어요.</div>';
+    return;
+  }
+  let html = '<div class="suggestions-grid">';
+  for (const s of suggestions) {
+    const tag = esc((s.category || '').toUpperCase());
+    const note = s.note ? esc(s.note) : '';
+    html += `<div class="suggestion-card ${esc(s.category || '')}">
+      <span class="hint-tag">${tag}</span>
+      <p class="name">${esc(s.name)}</p>
+      <p class="range">약 ${fmt(s.rangeLow)}~${fmt(s.rangeHigh)} kcal</p>
+      ${note ? `<p class="note">${note}</p>` : ''}
+    </div>`;
+  }
+  html += '</div>';
+  target.innerHTML = html;
 }
 
 // 프로필
