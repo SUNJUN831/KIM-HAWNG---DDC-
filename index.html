@@ -250,9 +250,16 @@
 
     <div class="inline-btns">
       <button class="btn" id="saveTodayBtn">오늘 기록 저장</button>
+      <button class="btn" id="calculateBtn">계산하기</button>
       <button class="btn secondary" id="clearTodayBtn">오늘 기록 초기화</button>
     </div>
     <div class="note">운동은 따로 입력하지 않아도 돼요. 오늘 활동 강도에 이미 포함돼요.</div>
+  </section>
+
+  <!-- 저장된 기록 목록 -->
+  <section id="historySection" class="card">
+    <div class="card-title">저장된 기록</div>
+    <div id="historyList"><div class="empty">저장된 기록이 없어요.</div></div>
   </section>
 
   <!-- 결과 섹션 -->
@@ -299,6 +306,11 @@
     <div class="card">
       <div class="card-title">오늘 전략</div>
       <div id="strategyContent"><div class="empty">전략을 계산 중이에요.</div></div>
+    </div>
+
+    <div class="card" id="recommendedSection">
+      <div class="card-title">이런 음식은 어때요?</div>
+      <div id="recommendedContent"><div class="empty">추천 음식을 불러오는 중이에요.</div></div>
     </div>
   </section>
 
@@ -389,23 +401,19 @@ function renderFoodLog(foods) {
     el.innerHTML = '<div class="empty">아직 먹은 음식이 없어요.</div>';
     return;
   }
-  let html = '<table class="food-table"><thead><tr><th>음식</th><th>추정 칼로리</th></tr></thead><tbody>';
+  const parts = [];
   for (const f of foods) {
     const lo = f.calLow != null ? fmt(f.calLow) : '—';
     const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
-    html += `<tr>
-      <td><strong>${esc(f.name)}</strong> ${esc(f.qty || '')}</td>
-      <td class="cal-range">약 ${lo}~${hi} kcal${f.note ? '<br><span style="color:var(--muted);font-size:11px;">'+esc(f.note)+'</span>' : ''}</td>
-    </tr>`;
+    let txt = esc(f.name);
+    if (f.qty) txt += `(${esc(f.qty)})`;
+    txt += ` 약 ${lo}~${hi} kcal`;
+    if (f.note) txt += ` — ${esc(f.note)}`;
+    parts.push(txt);
   }
   const totalLo = foods.reduce((s, f) => s + (f.calLow ?? 0), 0);
   const totalHi = foods.reduce((s, f) => s + (f.calHigh ?? 0), 0);
-  html += `<tr style="font-weight:600;background:#f9fafb;">
-    <td>합계</td>
-    <td class="cal-range">약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</td>
-  </tr>`;
-  html += '</tbody></table>';
-  el.innerHTML = html;
+  el.innerHTML = `<div style="font-size:13px;line-height:1.6;">${parts.join(', ')}<br><div style="font-weight:600;margin-top:8px;">합계 약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</div></div>`;
 }
 
 function esc(s) {
@@ -413,6 +421,39 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
+}
+
+function renderHistoryList() {
+  const el = $('historyList');
+  const raw = localStorage.getItem('ddc_history');
+  let history = [];
+  if (raw) {
+    try { history = JSON.parse(raw); } catch { history = []; }
+  }
+  if (!Array.isArray(history)) history = [];
+  if (history.length === 0) {
+    el.innerHTML = '<div class="empty">저장된 기록이 없어요.</div>';
+    return;
+  }
+  let html = '<table class="food-table"><thead><tr><th>날짜</th><th>활동 강도</th><th>먹은 음식</th><th>예정 음식</th><th>총 칼로리</th><th>삭제</th></tr></thead><tbody>';
+  for (const h of history) {
+    const date = h.date || '';
+    const levelLabel = {
+      '1.2': '거의 없음', '1.375': '낮음', '1.55': '보통', '1.725': '높음', '1.9': '매우 높음'
+    }[h.activityLevel] || h.activityLevel;
+    const eaten = h.eatenFoods ? h.eatenFoods.split('\n').map(s => s.trim()).filter(Boolean).join(', ') : '';
+    const planned = h.plannedFoods ? h.plannedFoods.split('\n').map(s => s.trim()).filter(Boolean).join(', ') : '';
+    html += `<tr>
+      <td>${esc(date)}</td>
+      <td>${esc(levelLabel)}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(eaten || '—')}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(planned || '—')}</td>
+      <td style="white-space:nowrap;">약 ${calLo}~${calHi} kcal</td>
+      <td><button class="btn danger" style="padding:4px 8px;font-size:11px;" data-delete-date="${esc(date)}">삭제</button></td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 async function runCalc() {
@@ -458,11 +499,43 @@ async function runCalc() {
     }
     const data = await res.json();
     renderResult(data);
+    // 계산 성공 시, 같은 날짜 기록에 칼로리도 업데이트
+    updateTodayHistoryCalories(data);
   } catch (e) {
     $('strategyContent').innerHTML =
       `<div class="strategy-box" style="border-left-color:var(--warn);">계산 중 오류가 발생했어요: ${esc(e.message)}</div>`;
     console.error(e);
   }
+}
+
+function updateTodayHistoryCalories(data) {
+  const raw = localStorage.getItem('ddc_history');
+  let history = [];
+  if (raw) {
+    try { history = JSON.parse(raw); } catch { history = []; }
+  }
+  if (!Array.isArray(history)) history = [];
+  const date = todayKey();
+  const existingIndex = history.findIndex(h => h.date === date);
+  const entry = {
+    date,
+    activityLevel: $('activityLevel').value,
+    eatenFoods: $('eatenFoods').value.trim(),
+    plannedFoods: $('plannedFoods').value.trim(),
+    savedAt: new Date().toISOString(),
+    totalCalLo: data.currentIntakeLo,
+    totalCalHi: data.currentIntakeHi,
+    targetCal: data.targetCalories,
+    remainingLo: data.remainingLo,
+    remainingHi: data.remainingHi
+  };
+  if (existingIndex >= 0) {
+    history[existingIndex] = entry;
+  } else {
+    history.push(entry);
+  }
+  localStorage.setItem('ddc_history', JSON.stringify(history));
+  renderHistoryList();
 }
 
 function renderResult(data) {
@@ -484,31 +557,21 @@ function renderResult(data) {
   // 예정 식사
   const plannedEl = $('plannedContent');
   if (data.plannedFoods && data.plannedFoods.length > 0) {
-    let html = '<table class="food-table"><thead><tr><th>예정 음식</th><th>추정 칼로리</th></tr></thead><tbody>';
+    const parts = [];
     for (const f of data.plannedFoods) {
       const lo = f.calLow != null ? fmt(f.calLow) : '—';
       const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
-      html += `<tr>
-        <td><strong>${esc(f.name)}</strong> ${esc(f.qty || '')}</td>
-        <td class="cal-range">약 ${lo}~${hi} kcal${f.note ? '<br><span style="color:var(--muted);font-size:11px;">'+esc(f.note)+'</span>' : ''}</td>
-      </tr>`;
+      let txt = esc(f.name);
+      if (f.qty) txt += `(${esc(f.qty)})`;
+      txt += ` 약 ${lo}~${hi} kcal`;
+      if (f.note) txt += ` — ${esc(f.note)}`;
+      parts.push(txt);
     }
     const pLo = data.plannedFoods.reduce((s,f) => s + (f.calLow ?? 0), 0);
     const pHi = data.plannedFoods.reduce((s,f) => s + (f.calHigh ?? 0), 0);
-    html += `<tr style="font-weight:600;background:#f9fafb;">
-      <td>합계</td>
-      <td class="cal-range">약 ${fmt(pLo)}~${fmt(pHi)} kcal</td>
-    </tr>`;
-    html += '</tbody></table>';
     const totalLo = data.currentIntakeLo + pLo;
     const totalHi = data.currentIntakeHi + pHi;
-    html += `<div style="margin-top:8px;font-size:13px;">
-      예정대로 먹는다면 오늘 총 섭취량은 <strong>약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</strong>로 예상돼요.
-    </div>`;
-    html += `<div style="margin-top:6px;font-size:13px;color:var(--muted);">
-      ${data.plannedComparison || ''}
-    </div>`;
-    plannedEl.innerHTML = html;
+    plannedEl.innerHTML = `<div style="font-size:13px;line-height:1.6;">${parts.join(', ')}<br><div style="font-weight:600;margin-top:8px;">예정 식사 합계 약 ${fmt(pLo)}~${fmt(pHi)} kcal</div><div style="margin-top:8px;font-size:13px;">예정대로 먹는다면 오늘 총 섭취량은 <strong>약 ${fmt(totalLo)}~${fmt(totalHi)} kcal</strong>로 예상돼요.</div><div style="margin-top:6px;font-size:13px;color:var(--muted);">${data.plannedComparison || ''}</div></div>`;
     $('plannedSection').classList.remove('hidden');
   } else {
     plannedEl.innerHTML = '<div class="empty">예정된 식사가 없어요.</div>';
@@ -518,6 +581,101 @@ function renderResult(data) {
   // 전략
   $('strategyContent').innerHTML =
     `<div class="strategy-box">${esc(data.strategy || '계산된 전략이 없어요.')}</div>`;
+
+  // 추천 음식 (프론트 기반 MVP: 솔라 응답 대신 계산 결과로 3개 추천)
+  renderRecommendedFoods(data);
+}
+
+function renderRecommendedFoods(data) {
+  const el = $('recommendedContent');
+  const remainingLo = data.remainingLo ?? 0;
+  const remainingHi = data.remainingHi ?? 0;
+  const goal = data.goal || 'maintain';
+  const profile = loadProfile();
+
+  let candidates = [];
+  if (goal === 'gain') {
+    candidates = [
+      { name: '소고기 볶음', qty: '약 200g', calLow: 450, calHigh: 650 },
+      { name: '초밥 세트', qty: '약 10~12피스', calLow: 500, calHigh: 700 },
+      { name: '닭갈비', qty: '약 1인분', calLow: 600, calHigh: 850 }
+    ];
+  } else if (goal === 'loss') {
+    candidates = [
+      { name: '연어 샐러드', qty: '1접시', calLow: 300, calHigh: 450 },
+      { name: '두부 정식', qty: '1인분', calLow: 350, calHigh: 500 },
+      { name: '닭가슴살 덮밥', qty: '약 1공기 분량', calLow: 400, calHigh: 550 }
+    ];
+  } else {
+    candidates = [
+      { name: '김치찌개 + 밥', qty: '1인분', calLow: 450, calHigh: 650 },
+      { name: '돈까스', qty: '1인분', calLow: 600, calHigh: 800 },
+      { name: '떡볶이 + 튀김', qty: '약 1인분', calLow: 500, calHigh: 750 }
+    ];
+  }
+
+  // 남은 칼로리가 아주 적으면 더 가벼운 쪽으로 조정
+  if (remainingHi < 400 && goal !== 'gain') {
+    candidates = [
+      { name: '맑은 국물 + 밥', qty: '1그릇', calLow: 250, calHigh: 400 },
+      { name: '샐러드 + 닭가슴살', qty: '1인분', calLow: 300, calHigh: 450 },
+      { name: '계란말이 + 밥', qty: '1인분', calLow: 300, calHigh: 450 }
+    ];
+  }
+
+  if (!candidates || candidates.length === 0) {
+    el.innerHTML = '<div class="empty">추천 음식을 준비하기 어려워요.</div>';
+    return;
+  }
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+  for (const f of candidates) {
+    const lo = f.calLow != null ? fmt(f.calLow) : '—';
+    const hi = f.calHigh != null ? fmt(f.calHigh) : '—';
+    html += `<div class="btn" style="justify-content:flex-start;text-align:left;width:100%;margin-bottom:6px;" data-name="${esc(f.name)}" data-qty="${esc(f.qty)}" data-lo="${f.calLow}" data-hi="${f.calHigh}">
+      <strong>${esc(f.name)}</strong> ${esc(f.qty)}
+      <span class="cal-range" style="margin-left:auto;">약 ${lo}~${hi} kcal</span>
+    </div>`;
+  }
+  html += '</div>';
+  html += '<div class="note" style="margin-top:6px;">원하는 음식을 누르면 예정 음식에 추가돼요.</div>';
+  el.innerHTML = html;
+
+  el.querySelectorAll('[data-name]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.getAttribute('data-name');
+      const qty = btn.getAttribute('data-qty');
+      const lo = parseInt(btn.getAttribute('data-lo'), 10);
+      const hi = parseInt(btn.getAttribute('data-hi'), 10);
+      addToPlanned(name, qty, lo, hi);
+    });
+  });
+}
+
+function addToPlanned(name, qty, calLow, calHigh) {
+  const plannedRaw = $('plannedFoods').value.trim();
+  const lines = plannedRaw ? plannedRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+  const newLine = qty ? `${name} (${qty})` : name;
+  if (!lines.includes(newLine)) {
+    lines.push(newLine);
+    $('plannedFoods').value = lines.join('\n');
+  }
+  // 예정 음식 섹션도 바로 갱신
+  const plannedEl = $('plannedContent');
+  const parts = lines.map(f => {
+    // textarea에 저장된 "라면 (1)" 형태에서 name과 qty 분리 시도
+    const m = f.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+    const displayName = m ? m[1] : f;
+    const displayQty = m ? m[2] : '';
+    let txt = esc(displayName);
+    if (displayQty) txt += `(${esc(displayQty)})`;
+    txt += ' 약 — kcal (계산 후 확정)';
+    return txt;
+  });
+  let html = `<div style="font-size:13px;line-height:1.6;">${parts.join(', ')}</div>`;
+  html += `<div style="margin-top:8px;font-size:13px;">예정 음식을 추가하면 계산하기 버튼으로 다시 계산할 수 있어요.</div>`;
+  plannedEl.innerHTML = html;
+  $('plannedSection').classList.remove('hidden');
 }
 
 // 프로필
@@ -555,17 +713,55 @@ function resetProfile() {
   $('weight').value = '';
 }
 
-// 오늘
-$('saveTodayBtn').addEventListener('click', runCalc);
+// 오늘 기록 저장 (계산 X) — 기록 목록에도 추가 (같은 날짜면 덮어쓰기)
+$('saveTodayBtn').addEventListener('click', () => {
+  const activityLevel = $('activityLevel').value;
+  const eatenRaw = $('eatenFoods').value.trim();
+  const plannedRaw = $('plannedFoods').value.trim();
+  saveToday({
+    activityLevel,
+    eatenFoods: eatenRaw,
+    plannedFoods: plannedRaw,
+    savedAt: new Date().toISOString()
+  });
+  // 기록 목록에 추가 또는 덮어쓰기
+  const raw = localStorage.getItem('ddc_history');
+  let history = [];
+  if (raw) {
+    try { history = JSON.parse(raw); } catch { history = []; }
+  }
+  if (!Array.isArray(history)) history = [];
+  const date = todayKey();
+  const existingIndex = history.findIndex(h => h.date === date);
+  const entry = {
+    date,
+    activityLevel,
+    eatenFoods: eatenRaw,
+    plannedFoods: plannedRaw,
+    savedAt: new Date().toISOString()
+  };
+  if (existingIndex >= 0) {
+    history[existingIndex] = entry;  // 같은 날짜면 덮어쓰기
+  } else {
+    history.push(entry);  // 새 날짜면 추가
+  }
+  localStorage.setItem('ddc_history', JSON.stringify(history));
+  renderHistoryList();
+});
 
 $('clearTodayBtn').addEventListener('click', () => {
   if (!confirm('오늘 기록을 초기화할까요?')) return;
   clearToday();
+  localStorage.removeItem('ddc_history');
   $('eatenFoods').value = '';
   $('plannedFoods').value = '';
   $('activityLevel').value = '1.55';
   hideElem('resultSection');
+  renderHistoryList();
 });
+
+// 계산하기
+$('calculateBtn').addEventListener('click', runCalc);
 
 // 초기 로딩
 (function init() {
@@ -580,11 +776,7 @@ $('clearTodayBtn').addEventListener('click', () => {
   if (today) {
     renderTodayForm(today);
   }
-  // 자동 계산: 프로필 있고 오늘 기록 있으면 실행
-  if (profile && today && (today.eatenFoods || today.plannedFoods)) {
-    // 약간의 지연 후 실행 (DOM 준비 완료 후)
-    setTimeout(runCalc, 300);
-  }
+  renderHistoryList();
 })();
 </script>
 </body>
