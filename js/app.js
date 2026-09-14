@@ -151,12 +151,13 @@ $('clearTodayBtn').addEventListener('click', () => {
   const profile = loadProfile();
   if (profile) {
     displayProfile(profile);
-    showElem('todayStateSection');
-    refreshStateCardTargetOnly(profile, $('activityLevel').value);
+    // 새로고침 시 자동 계산/상태 카드 갱신 안 함 — 저장 버튼 누를 때만
+    hideElem('todayStateSection');
   } else {
     renderProfileForm(null);
     hideElem('todayStateSection');
   }
+  
   const today = loadToday();
   $('dateLabel').textContent = '오늘의 기록 · ' + todayKey();
   if (today) {
@@ -165,8 +166,10 @@ $('clearTodayBtn').addEventListener('click', () => {
   if (profile && today) {
     const hasMeals = today.meals && typeof today.meals === 'object' && !Array.isArray(today.meals)
       && Object.values(today.meals).some(v => v && typeof v === 'string' && v.trim());
-    if (hasMeals || today.plannedFoods) {
-      setTimeout(runCalc, 300);
+    const hasPlanned = today.plannedFoods && typeof today.plannedFoods === 'string' && today.plannedFoods.trim();
+    // 자동 재계산은 띄우지 않음 — 저장 버튼 누를 때만 runCalc()
+    if (hasMeals || hasPlanned) {
+      // 과거: setTimeout(runCalc, 300);  // 자동 계산 끄기
     }
   }
 })();

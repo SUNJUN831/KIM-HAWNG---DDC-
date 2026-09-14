@@ -281,7 +281,7 @@ async function buildSelectFoodsPrompt(candidates, remainingAvg, remainingLo, rem
   const foodLines = candidates
     .map((c) => {
       const catInfo = c.category ? ` [${c.category}]` : '';
-      return `- ${c.name}${catInfo} | 약 ${c.calActual} kcal | 코드: ${c.code}`;
+      return `- ${c.displayName}${catInfo} | 약 ${c.calActual} kcal | 코드: ${c.code}`;
     })
     .join('\n');
 
@@ -308,8 +308,9 @@ async function buildSelectFoodsPrompt(candidates, remainingAvg, remainingLo, rem
   - 각 항목이 그 자체로 완전한 한 끼 메뉴가 될 수 있는 독립적인 음식으로 골라줘. 밥+찌개+반찬처럼 일부만 부분적으로 뽑는 게 아니라, 각 음식이 충분한 분량과 칼로리를 가진 하나의 메뉴로 구성되어야 해.
   - 구이류(고기·생선 등을 구운 것)가 포함되면, 밥과 함께 먹는 구성으로 자연스럽게 묶일 수 있지만, 다른 항목들은 별도 메인 메뉴로 독립성 있게 골라줘.
 - 가능하면 일반적으로 많이 먹는 음식 위주로 선택해. 조림류·젓갈류·장아찌·절임류·김치류 등 호불호 강한 음식 단독보다는, 구이류·국/탕류·면류·밥류·만두·스프·찜·볶음·샐러드·튀김류 등 대중적인 메뉴를 우선해.
-- 이름은 foodLv4Nm 기준의 간결한 이름(예: 팟타이, 삼겹살구이, 감자그라탕, 나베 등)으로만 지어줘. 음식명의 긴 수식어·세트명·소스명 등 불필요한 부분은 생략하고, 핵심 음식명만 사용해. 예를 들어 "나베_간편조리세트_통등심가스나베" → "나베", "김치 고기만두" → "김치만두", "닭백숙_소금제외" → "닭백숙" 처럼 앞 수식어는 생략하고 핵심 메뉴명만 사용해.
+- 이름은 반드시 아래 후보 목록에 표시된 이름(displayName) 그대로 사용해. 절대 다른 이름으로 바꾸거나 새로 만들지 말고, 목록에 있는 이름 중 하나를 그대로 name으로 반환해야 해. 예를 들어 목록에 "닭발볶음"이 있으면 "닭볶음"으로 바꾸지 말고 "닭발볶음"을 그대로 쓰고, "비빔면 매콤제육비빔면"이 있으면 "비빔면"으로 줄이지 말고 전체 이름을 그대로 사용해.
 - 각 후보의 원래 1인분 중량(g)이 다음과 같이 제공돼. 이 정보를 참고해서 qty를 자연스러운 표현으로 제시해줘. (예: 210g이면 "1공기", 350g이면 "1인분", 130g이면 "1접시" 등) 원정보에 없는 경우 추정하지 말고 qty는 자유롭게 정해.
+- **칼로리(calLow/calHigh)는 네가 추정하지 말고, 서버가 DB 실제값으로 채워줘.** 너는 각 음식의 name, qty, note, mealType만 결정해서 반환해. 서버는 DB에서 가져온 실제 칼로리(calActual)를 calLow/calHigh에 넣어줄 거야.
 - 선택 항목 간 중복을 피하되, 각 음식이 약 ${remainingAvg} kcal 전후(±150 kcal) 범위에서 충분히 의미 있는 포만감을 주는 메뉴로 구성해줘. 총합이 남은 칼로리를 초과할 수 있지만, 각 메뉴가 부실한 것보다는 낫다.
 
 ===== 후보 목록 =====
@@ -321,7 +322,7 @@ ${solarHint ? `\n===== 식단 힌트 (참고만 하세요) =====\n${solarHint}\n
 
 [
   {
-    "name": "음식명 (간결한 foodLv4Nm 기준, 예: 팟타이, 삼겹살구이, 감자그라탕, 나베 등)",
+    "name": "음식명 (간결한 foodLv4Nm 기준, 예: 팟타이, 삼겹살구이, 나베 등)",
     "qty": "양 (예: 200g, 1인분, 1그릇 등)",
     "calLow": 숫자 (kcal 하한),
     "calHigh": 숫자 (kcal 상한),
@@ -331,8 +332,7 @@ ${solarHint ? `\n===== 식단 힌트 (참고만 하세요) =====\n${solarHint}\n
 ]
 
 규칙:
-- calLow와 calHigh는 각 음식이 약 ${remainingAvg} kcal 전후(±150 kcal) 범위에서 실제 칼로리에 맞춰 제시해.
-- 같은 계열 음식이 여러 개 들어가지 않게 걸러줘.
+- calLow와 calHigh는 네가 추정하지 마. 서버가 DB 실제값(calActual)을 넣어줄 거야.
 - 결과는 바로 JSON 배열로만 줘. 다른 설명은 넣지 마.
 `;
 }
@@ -353,16 +353,20 @@ async function selectDiverseFoodsWithSolar(candidates, remainingAvg, remainingLo
 
   if (result.error) {
     console.log('[DDC] Solar selectDiverseFoods 오류:', result.error);
-    // Solar 실패 시 fallback: 기존에 candidates 중 앞에서 count개 반환
-    return candidates.slice(0, count).map((c) => ({
-      name: c.category || c.name,
-      qty: c.qty,
-      calLow: c.calLow,
-      calHigh: c.calHigh,
-      note: buildNotePlain({ category: c.category, calLow: c.calActual }),
-      isPlanned: false,
-      mealType: 'dinner',
-    }));
+    // Solar 실패 시 fallback: 기존에는 candidates 중 앞에서 count개 반환
+    return candidates.slice(0, count).map((c) => {
+      const calActual = c.calActual != null ? c.calActual : (c.calLow || 0);
+      const displayName = c.displayName || c.category || c.name;
+      return {
+        name: displayName,
+        qty: c.qty,
+        calLow: calActual,
+        calHigh: calActual,
+        note: buildNotePlain({ category: c.category, calLow: calActual }),
+        isPlanned: false,
+        mealType: 'dinner',
+      };
+    });
   }
 
   console.log('[DDC] Solar raw 응답 (selectDiverseFoods):', result.content.slice(0, 1000));
@@ -378,15 +382,44 @@ async function selectDiverseFoodsWithSolar(candidates, remainingAvg, remainingLo
     // Solar가 foodLv4Nm 기준 간결한 name으로 응답 → 원본 candidates에서 매칭하여 code 보존
     return parsed.map((item) => {
       const foodLv4Nm = (item.name || '').trim();
-      const matched = candidates.find(
-        (c) => c.category === foodLv4Nm || c.name === foodLv4Nm
-      );
+      const nameWords = foodLv4Nm.split(/\s+/).filter(Boolean);
+      const firstWord = nameWords[0] || '';
+      // 1차: 정확한 displayName 일치
+      let matched = candidates.find((c) => c.displayName === foodLv4Nm);
+      // 2차: 포함 관계 (Solar가 간략화한 이름도 매칭)
+      if (!matched) {
+        matched = candidates.find((c) =>
+          c.displayName.includes(foodLv4Nm) || foodLv4Nm.includes(c.displayName)
+        );
+      }
+      // 3차: category/name 기준 매칭
+      if (!matched) {
+        matched = candidates.find((c) =>
+          c.category === foodLv4Nm || c.name === foodLv4Nm
+        );
+      }
+      // 4차: 단어 기반 fuzzy — 첫 단어 또는 nameWords 중 하나로 match, 접미사 키워드 포함
+      if (!matched && firstWord) {
+        matched = candidates.find((c) => {
+          const dname = c.displayName.toLowerCase();
+          const fn = firstWord.toLowerCase();
+          // 첫 단어로 시작하거나 접미사 구분자 기준 앞부분 일치, 또는 dname이 fn을 포함
+          return dname.startsWith(fn) || dname.includes(fn) ||
+            c.displayName.split(/[\s_·]+/).some(w => w.toLowerCase() === fn);
+        });
+      }
+      // DB 매칭된 calActual을 calLow/calHigh에 사용 (LLM 추정 대신 DB 실제값)
+      const calActual = matched && matched.calActual != null ? matched.calActual : 0;
+      // qty에 gram 정보 추가 (후보의 foodSize 활용) — "1인분(180g)" 형태
+      const qty = matched && matched.foodSize != null
+        ? `${item.qty || '1인분'} (${matched.foodSize}g)`
+        : item.qty || '';
       return {
-        name: foodLv4Nm || '알 수 없음',
-        qty: item.qty || '',
-        calLow: typeof item.calLow === 'number' ? item.calLow : 0,
-        calHigh: typeof item.calHigh === 'number' ? item.calHigh : 0,
-        note: item.note || '',
+        name: matched ? matched.displayName : (foodLv4Nm || '알 수 없음'),
+        qty: qty,
+        calLow: calActual,
+        calHigh: calActual,
+        note: item.note || (matched && matched.category ? `${matched.category} 계열` : ''),
         isPlanned: false,
         mealType: item.mealType || 'dinner',
         code: matched ? matched.code : '',
@@ -394,15 +427,21 @@ async function selectDiverseFoodsWithSolar(candidates, remainingAvg, remainingLo
     });
   } catch (e) {
     console.log('[DDC] Solar selectDiverseFoods 파싱 실패:', e.message);
-    return candidates.slice(0, count).map((c) => ({
-      name: c.category || c.name,
-      qty: c.qty,
-      calLow: c.calLow,
-      calHigh: c.calHigh,
-      note: buildNotePlain({ category: c.category, calLow: c.calActual }),
-      isPlanned: false,
-      mealType: 'dinner',
-    }));
+    // 파싱 실패 시 fallback: candidates 앞에서 count개 채움 (매칭 실패해도 빈 슬롯 방지용)
+    return candidates.slice(0, count).map((c) => {
+      const calActual = c.calActual != null ? c.calActual : (c.calLow || 0);
+      const displayName = c.displayName || c.category || c.name;
+      const qty = c.foodSize != null ? `${c.qty || '1인분'} (${c.foodSize}g)` : c.qty || '';
+      return {
+        name: displayName,
+        qty: qty,
+        calLow: calActual,
+        calHigh: calActual,
+        note: buildNotePlain({ category: c.category, calLow: calActual }),
+        isPlanned: false,
+        mealType: 'dinner',
+      };
+    });
   }
 }
 

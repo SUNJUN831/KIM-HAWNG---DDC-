@@ -226,9 +226,11 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
   const maxCodesToTry = Math.min(shuffledCodes.length, 15);
   const poolSize = Math.max(count * 3, 15);
   const candidates = [];
+  const maxPerCode = Math.max(3, Math.ceil(poolSize / maxCodesToTry));
 
-  for (let i = 0; i < maxCodesToTry && candidates.length < poolSize; i++) {
+  for (let i = 0; i < maxCodesToTry; i++) {
     const code = shuffledCodes[i];
+    let codeCount = 0;
     for (let p = 1; p <= 5 && candidates.length < poolSize; p++) {
       const rows = await fetchFoodList({ pageNo: p, numOfRows: 100, type: 'json', foodLv3Cd: code });
       if (rows.length === 0) continue;
@@ -244,8 +246,20 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
             (c) => c.category === item.foodLv4Nm
           );
           if (alreadyAdded) continue;
+          if (codeCount >= maxPerCode) break;
+
+          // 간결명: DB foodNm에서 괄호·불필요 접미사 제거, 핵심 음식명만
+          function makeDisplayName(foodNm) {
+            if (!foodNm) return '';
+            let name = foodNm.replace(/\([^)]*\)/g, '');        // 괄호 안 제거
+            name = name.replace(/_간편조리세트|_간편식|_즉석|_냉동|_소금제외|_설탕제외|_소스제외|_기본|_매운맛|_순한맛|_중간맛/g, '');
+            // _ 구분자를 공백으로 변환 (단어 분리 유지)
+            name = name.replace(/_/g, ' ').replace(/  +/g, ' ').trim();
+            return name || foodNm;
+          }
           candidates.push({
             name: item.foodNm,
+            displayName: makeDisplayName(item.foodNm),
             qty: `${servingG}g`,
             foodSize: servingG,
             calLow: actualCal,
@@ -256,8 +270,10 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
             calActual: actualCal,
             code: code,
           });
+          codeCount++;
         }
       }
+      if (codeCount >= maxPerCode) break;
     }
   }
 

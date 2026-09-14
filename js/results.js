@@ -109,9 +109,10 @@ function renderSuggestions(suggestions) {
   let html = '<div class="suggestions-grid">';
   for (const s of suggestions) {
     const note = s.note ? esc(s.note) : '';
-    html += `<div class="suggestion-card ${esc(s.category || '')}">
+    const category = s.mealType || '';
+    html += `<div class="suggestion-card ${esc(category)}">
       <p class="name">${esc(s.name)}</p>
-      <p class="range">약 ${fmt(s.rangeLow)}~${fmt(s.rangeHigh)} kcal</p>
+      <p class="range">약 ${fmt(s.calLow)} kcal</p>
       ${note ? `<p class="note">${note}</p>` : ''}
     </div>`;
   }
@@ -251,10 +252,37 @@ for (const [mealKey, elementId] of Object.entries(mealCalorieTargets)) {
 );
 
 let strategyItems = strategySummary
-  .split(/<br>|①|②|③|④/)
+  .replace(/<br\s*\/?>/g, '\n')
+  .split(/[①②③④]/)
   .map(item => item.trim())
   .filter(Boolean)
   .slice(0, 3);
+
+// 전략 항목이 3개 미만이면 부족한 칸을 실제 전략 내용으로 보완
+if (strategyItems.length < 3 && data.strategy) {
+  const raw = data.strategy;
+  const sentences = raw.split(/(?<=[\u2026.!?])\s+/).map(s => s.trim()).filter(Boolean);
+
+  // plannedFoods 이름이 언급된 문장 추출
+  const plannedNames = (data.plannedFoods || [])
+    .map(p => p.name)
+    .filter(Boolean);
+
+  const relevantSentences = plannedNames.length > 0
+    ? sentences.filter(s => plannedNames.some(n => s.includes(n)))
+    : [];
+
+  for (let i = strategyItems.length; i < 3; i++) {
+    if (i === 2 && relevantSentences.length > 0) {
+      // 생활패턴 반영 칸에는 예정 음식 관련 전략 문장을 넣음
+      strategyItems.push(relevantSentences.slice(0, 2).join(' '));
+    } else if (i === 1 && strategyItems.length < 2) {
+      strategyItems.push(sentences[0] || strategyItems[0] || '');
+    } else {
+      strategyItems.push(strategyItems[strategyItems.length - 1] || '');
+    }
+  }
+}
 
 const coachingTitles = [
   '현재 상태',
@@ -269,11 +297,14 @@ const currentStatus =
   strategyItems[0] || '현재 상태를 분석하고 있어요.';
 
 const dietAnalysis =
-  strategyItems[1] || '오늘 식사 기록을 입력하면 식단을 분석해드려요.';
+  strategyItems[1] || (agentInput
+    ? '입력한 내용을 바탕으로 식단을 분석해드렸어요.'
+    : '오늘 식사 기록을 입력하면 식단을 분석해드려요.');
 
-const lifestylePattern = agentInput
-  ? (strategyItems[2] || '입력한 일정과 활동을 바탕으로 생활 패턴을 반영하고 있어요.')
-  : 'DDC 에이전트에 예정된 식사, 활동, 일정 등을 적어주세요.';
+const lifestylePattern =
+  strategyItems[2] || (agentInput
+    ? '입력한 일정을 반영했어요. 자세한 내용은 현재 상태 항목을 참고하세요.'
+    : 'DDC 에이전트에 예정된 식사, 활동, 일정 등을 적어주세요.');
 
 const coachingItems = [
   { title: '현재 상태', text: currentStatus },
@@ -311,7 +342,7 @@ $('strategyContent').innerHTML = `
     if (goal) goal.textContent = '목표 ' + fmt(data.targetCalories) + ' kcal';
   }
 
-  renderSuggestions(data.mealSuggestions);
+  renderSuggestions(data.recommendedFoods || []);
 }
 
 export { renderFoodLog, renderMealSummary, renderSuggestions, renderResult };

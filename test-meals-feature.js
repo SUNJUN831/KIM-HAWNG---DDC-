@@ -454,6 +454,7 @@ check('init 자동실행 조건이 meals 기준으로 동작한다 (옛 eatenFoo
   assert.strictEqual(shouldRun, false, '옛 eatenFoods만 있을 때는 자동 실행되면 안 됨 (meals도 plannedFoods도 없음)');
 });
 
+
 check('init 자동실행 조건이 새 meals 데이터로 동작한다', () => {
   clearToday();
   saveToday({
