@@ -108,12 +108,17 @@ function renderSuggestions(suggestions) {
   }
   let html = '<div class="suggestions-grid">';
   for (const s of suggestions) {
-    const tag = esc((s.category || '').toUpperCase());
+    const category = (s.category || '').toUpperCase();
+    const name = s.name || '이름 없음';
+    const qty = s.qty ? ` (${esc(s.qty)})` : '';
+    const rangeLow = s.calLow ?? s.rangeLow;
+    const rangeHigh = s.calHigh ?? s.rangeHigh;
+    const hasRange = rangeLow != null && rangeHigh != null;
     const note = s.note ? esc(s.note) : '';
-    html += `<div class="suggestion-card ${esc(s.category || '')}">
-      <span class="hint-tag">${tag}</span>
-      <p class="name">${esc(s.name)}</p>
-      <p class="range">약 ${fmt(s.rangeLow)}~${fmt(s.rangeHigh)} kcal</p>
+    html += `<div class="suggestion-card ${esc((s.category || ''))}">
+      ${category ? `<span class="hint-tag">${esc(category)}</span>` : ''}
+      <p class="name">${esc(name)}${qty}</p>
+      <p class="range">${hasRange ? '약 ' + fmt(rangeLow) + '~' + fmt(rangeHigh) + ' kcal' : '칼로리 범위 미확인'}</p>
       ${note ? `<p class="note">${note}</p>` : ''}
     </div>`;
   }
@@ -170,7 +175,7 @@ function renderResult(data) {
   $('strategyContent').innerHTML =
     `<div class="strategy-box">${esc(data.strategy || '계산된 전략이 없어요.')}</div>`;
 
-  renderSuggestions(data.mealSuggestions);
+  renderSuggestions(data.recommendedFoods);
 }
 
 export { renderFoodLog, renderMealSummary, renderSuggestions, renderResult };

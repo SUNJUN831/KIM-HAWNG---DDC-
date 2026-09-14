@@ -2,5 +2,8 @@
   "name": "ddc",
   "version": "1.0.0",
   "type": "module",
-  "description": "오늘 하루 식단 코치 - Vercel 웹 서비스"
+  "description": "오늘 하루 식단 코치 - Vercel 웹 서비스",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
 }

@@ -48,6 +48,7 @@ async function runCalc() {
 
   try {
     const data = await fetchCalculation(payload);
+    console.log('[DDC] calculate 응답 전체:', JSON.stringify(data, null, 2));
     renderResult(data);
   } catch (e) {
     $('strategyContent').innerHTML =
@@ -114,7 +115,6 @@ $('clearTodayBtn').addEventListener('click', () => {
     const hasMeals = today.meals && typeof today.meals === 'object' && !Array.isArray(today.meals)
       && Object.values(today.meals).some(v => v && typeof v === 'string' && v.trim());
     if (hasMeals || today.plannedFoods) {
-      setTimeout(runCalc, 300);
     }
   }
 })();
