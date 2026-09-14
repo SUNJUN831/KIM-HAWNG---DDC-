@@ -1,3 +1,4 @@
+
 import { interpretFoodsWithSolar, generateStrategyWithSolar, selectDiverseFoodsWithSolar } from './solar.js';
 import { pickFoodsByCalorieTarget } from './foodRequest.js';
 import { FOOD_LV3_SERVING_G } from './foodCategories.js';
@@ -205,7 +206,7 @@ export default async function handler(req, res) {
   const macroAnalysis = macroAnalysisBuild;
 
   // 매크로 분석 기반 추천 필터 설정
-  const macroFilter = buildMacroFilterConfig(macroAnalysis, profile);
+ const macroFilter = buildMacroFilterConfig(macroAnalysis, profile, targetCaloriesRaw);
 
   // 예정 음식 섭취 후 남은 칼로리 (범위 + 중간값)
   const plannedFoodsCalLo = plannedFoodsResult.reduce((s, p) => s + (p.calLow ?? 0), 0);
@@ -280,8 +281,7 @@ export default async function handler(req, res) {
   const recTargetLo = projectedRemainingLo !== null && projectedRemainingLo !== undefined ? projectedRemainingLo : remainingLo;
   const recTargetHi = projectedRemainingHi !== null && projectedRemainingHi !== undefined ? projectedRemainingHi : remainingHi;
   const recommendedFoods = await buildRecommendedFoods(recTargetAvg, foods, 4, recTargetLo, recTargetHi, foodHistory, macroFilter);
-  const macroFilterForSolar = macroFilter ?? buildMacroFilterConfig(macroAnalysis, profile);
-
+ 
   // 생활 패턴 안내 문구
   const lifestyleNote = lifestylePatterns && lifestylePatterns.length > 0
     ? null
@@ -342,7 +342,7 @@ async function buildRecommendedFoods(remainingAvg, eatenFoods, count = null, rem
   // 2) 반찬 코드 있어도 Solar한테 후보 풀을 넘겨서 고르게 함
   // 3) Solar 응답 결과에서 반찬 코드에 해당하는 항목만 밥+반찬으로 조합
   if (candidates.length === 0) return [];
-  const selected = await selectDiverseFoodsWithSolar(filteredCandidates, remainingAvg, remainingLo, remainingHi, useCount, foodHistory, macroFilterForSolar?.solarHint || '');
+  const selected = await selectDiverseFoodsWithSolar(filteredCandidates, remainingAvg, remainingLo, remainingHi, useCount, foodHistory, macroFilter?.solarHint || '');
   if (selected.length === 0) return [];
 
   // Solar 응답의 name을 원본 후보와 매칭하여 foodSize(g) 정보를 qty에 반영
@@ -508,7 +508,7 @@ export { buildRecommendedFoods, buildMacroAnalysis, filterCandidatesByHistory, b
  * @param {import('./calculate.js').Profile} profile
  * @returns {{ avoidCodes: Set<string>, boostCodes: Set<string>, solarHint: string }}
  */
-function buildMacroFilterConfig(macroAnalysis, profile) {
+function buildMacroFilterConfig(macroAnalysis, profile,targetCaloriesRaw) {
   const avoidCodes = new Set();   // 후보 풀에서 제외할 대분류 코드
   const boostCodes = new Set();   // 선호 가중치가 들어가는 대분류 코드
   const hints = [];

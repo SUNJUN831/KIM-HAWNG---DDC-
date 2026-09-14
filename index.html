@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+todayStateSectio<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -10,109 +10,102 @@
 </head>
 <body>
 <div class="container">
-  <h1>오늘 하루 식단 코치</h1>
-  <p class="sub">오늘 활동·식사 기준으로 남은 하루 식사를 계획해요. 모든 수치는 추정치예요.</p>
-
-  <!-- 프로필 섹션 -->
-  <section id="profileSection" class="card">
+  <h1>오늘 하루 <span class="accent">식단 코치</span></h1>
+  <p class="header-sub">실시간 잔여 칼로리 의사결정 에이전트</p>
+  <p class="header-desc">식사, 활동량, 예정된 일정까지 실시간으로 반영해 다음 식사 전략을 계속 업데이트해요.</p>
+<!-- 달력 영역을 여기 추가 -->
+<div class="header-calendar">
+  <button type="button" class="calendar-button">
+    <span class="calendar-icon">📅</span>
+    <span>2026-09-14</span>
+  </button>
+</div>
+<!-- 프로필 섹션 (기존 그대로 유지) -->
+<section id="profileSection" class="card profile-card">
     <div class="card-title">기본 정보 (처음 한 번만 등록)</div>
     <div id="profileForm">
-      <div class="form-row">
-        <label>성별</label>
-        <select id="gender">
-          <option value="male">남성</option>
-          <option value="female">여성</option>
-        </select>
+      <div class="profile-grid">
+        <div class="profile-field">
+          <label for="gender">성별</label>
+          <select id="gender">
+            <option value="male">남성</option>
+            <option value="female">여성</option>
+          </select>
+        </div>
+        <div class="profile-field">
+          <label for="age">나이</label>
+          <input type="number" id="age" min="10" max="120" placeholder="세">
+        </div>
+        <div class="profile-field">
+          <label for="height">키(cm)</label>
+          <input type="number" id="height" min="120" max="250" step="0.1" placeholder="cm">
+        </div>
+        <div class="profile-field">
+          <label for="weight">체중(kg)</label>
+          <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="kg">
+        </div>
+        <div class="profile-field profile-field--goal">
+          <label for="goal">목표</label>
+          <select id="goal">
+            <option value="loss">감량</option>
+            <option value="maintain">유지</option>
+            <option value="gain">증량</option>
+          </select>
+        </div>
       </div>
-      <div class="form-row">
-        <label>나이</label>
-        <input type="number" id="age" min="10" max="120" placeholder="세">
-      </div>
-      <div class="form-row">
-        <label>키(cm)</label>
-        <input type="number" id="height" min="120" max="250" step="0.1" placeholder="cm">
-      </div>
-      <div class="form-row">
-        <label>체중(kg)</label>
-        <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="kg">
-      </div>
-      <div class="form-row">
-        <label>목표</label>
-        <select id="goal">
-          <option value="loss">감량</option>
-          <option value="maintain">유지</option>
-          <option value="gain">증량</option>
-        </select>
-      </div>
-      <div class="inline-btns">
+      <div class="profile-actions">
         <button class="btn" id="saveProfileBtn">저장</button>
         <button class="btn secondary" id="resetProfileBtn">프로필 초기화</button>
       </div>
     </div>
-    <div id="profileSaved" class="hidden" style="margin-top:8px;">
-      <span style="font-size:13px; color:var(--muted);">
-        저장된 프로필: <strong id="profileDisplay"></strong>
-        <button class="btn danger" id="resetProfileBtn2" style="margin-left:8px;">초기화</button>
-      </span>
-    </div>
+    <div id="profileSaved" class="hidden saved-profile-row">
+  <span class="saved-profile-text">
+    저장된 프로필: <strong id="profileDisplay"></strong>
+  </span>
+
+  <button class="btn danger" id="resetProfileBtn2">초기화</button>
+</div>
+
   </section>
 
-  <!-- 오늘 입력 섹션 -->
-  <section id="todaySection" class="card">
-    <div class="card-title">오늘 기록</div>
-    <div class="date-label" id="dateLabel"></div>
+  <!-- 오늘의 상태 (프로필 바로 아래, 오늘의 계획 위) — 계산 결과가 있을 때만 표시 -->
+  <section id="todayStateSection" class="hidden">
+    <div class="card state-card">
+      <div class="card-title">오늘의 상태</div>
 
-    <div class="form-row">
-      <label>오늘 활동 강도</label>
-      <select id="activityLevel">
-        <option value="1.2">거의 활동 없음</option>
-        <option value="1.375">낮음</option>
-        <option value="1.55" selected>보통</option>
-        <option value="1.725">높음</option>
-        <option value="1.9">매우 높음</option>
-      </select>
-    </div>
+      <!-- 진행바 (가장 먼저) -->
+      <div style="margin-top:4px;">
+  <div class="state-label">진행도</div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressCurrent">—</span>
+    <span id="progressGoal">—</span>
+  </div>
+</div>
 
+    <!-- 오늘 상태 핵심 지표 -->
+ 
+<div class="state-metrics">
 
-    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
-      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;">먹은 음식 — 안 먹은 끼니는 비워두세요</div>
-      <div class="meal-grid">
-        <div class="meal-cell">
-          <label class="meal-label" for="mealBreakfast">아침</label>
-          <textarea class="meal-input" id="mealBreakfast" placeholder="예: 밥 한 공기, 계란 프라이 2개, 김"></textarea>
-        </div>
-        <div class="meal-cell">
-          <label class="meal-label" for="mealLunch">점심</label>
-          <textarea class="meal-input" id="mealLunch" placeholder="예: 김치찌개, 밥 한 공기"></textarea>
-        </div>
-        <div class="meal-cell">
-          <label class="meal-label" for="mealDinner">저녁</label>
-          <textarea class="meal-input" id="mealDinner" placeholder="예: 삼겹살 200g, 상추, 쌈장"></textarea>
-        </div>
-        <div class="meal-cell">
-          <label class="meal-label" for="mealSnack">간식</label>
-          <textarea class="meal-input" id="mealSnack" placeholder="예: 바나나 1개, 견과류 한 줌"></textarea>
-        </div>
-      </div>
-    </div>
-    
-    <div class="form-row" style="margin-top:20px;">
-      <label style="min-width:80px;">예정 음식</label>
-      <textarea id="plannedFoods" placeholder="예: 삼겹살 200g, 치킨 반마리 (없으면 비워두세요)" style="margin-bottom:16px;"></textarea>
-    </div>
+  <div class="state-metric">
+    <div class="state-metric-label">현재 섭취</div>
+    <div class="state-big-value state-current" id="currentIntakeValue">—</div>
+  </div>
 
-    <div class="inline-btns">
-      <button class="btn" id="saveTodayBtn">오늘 기록 저장</button>
-      <button class="btn secondary" id="clearTodayBtn">오늘 기록 초기화</button>
-    </div>
-    <div class="note">운동은 따로 입력하지 않아도 돼요. 오늘 활동 강도에 이미 포함돼요.</div>
-  </section>
+<div class="state-metric">
+  <div class="state-metric-label">남은 칼로리</div>
+  <div class="state-big-value state-remaining" id="remainingValue">—</div>
+</div>
 
-  <!-- 결과 섹션 -->
-  <section id="resultSection" class="hidden">
-    <div class="card">
-      <div class="card-title">오늘 기준</div>
-      <div class="summary-grid">
+<div class="state-metric">
+  <div class="state-metric-label">오늘 목표 칼로리</div>
+  <div class="state-big-value state-goal-value" id="goalValue">—</div>
+</div>
+</div>
+      <!-- BMR·TDEE: 화면 비노출, JS 참조 보존 -->
+      <div id="bmrTdeeHidden" class="bmr-tdee-hidden" style="margin-top:10px;">
         <div class="summary-item">
           <div class="label">기초대사량</div>
           <div class="value" id="bmrValue">—</div>
@@ -121,49 +114,196 @@
           <div class="label">오늘 예상 소비</div>
           <div class="value" id="tdeeValue">—</div>
         </div>
-        <div class="summary-item">
-          <div class="label">목표</div>
-          <div class="value" id="goalValue">—</div>
-        </div>
       </div>
-      <div style="margin-top:10px;">
-        <div class="summary-item">
-          <div class="label">현재 섭취</div>
-          <div class="value" id="currentIntakeValue">—</div>
-        </div>
-        <div class="summary-item" id="remainingBox" style="margin-top:8px;">
-          <div class="label">저녁 전 남은 범위</div>
-          <div class="value" id="remainingValue">—</div>
-        </div>
-      </div>
-      <div class="note" id="goalNote"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">오늘 먹은 음식</div>
-      <div id="foodLog"><div class="empty">아직 먹은 음식이 없어요.</div></div>
-    </div>
-
-    <div class="card" id="mealSummarySection">
-      <div class="card-title">끼니별 요약</div>
-      <div id="mealSummary"><div class="empty">끼니별 기록이 없어요.</div></div>
-    </div>
-
-    <div class="card" id="plannedSection">
-      <div class="card-title">오늘 예정 식사</div>
-      <div id="plannedContent"><div class="empty">예정된 식사가 없어요.</div></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">오늘 전략</div>
-      <div id="strategyContent"><div class="empty">전략을 계산 중이에요.</div></div>
-    </div>
-
-    <div class="card" id="suggestionsSection">
-      <div class="card-title">오늘 추천 식사 (남은 칼로리 기준)</div>
-      <div id="suggestionsContent"><div class="empty">추천을 계산 중이에요.</div></div>
+      <div class="note" id="goalNote" style="margin-top:8px;"></div>
     </div>
   </section>
+
+  <!-- 오늘의 계획 (입력 + 결과 요약 통합) -->
+  <section id="todaySection" class="card">
+    <div class="today-header">
+      <div class="today-header-left">
+        <div class="card-title">오늘의 기록</div>
+        <div class="date-label" id="dateLabel"></div>
+      </div>
+      <div class="today-header-right">
+        <div class="activity-row" style="display:none;">
+          <label for="activityLevel" class="activity-label">오늘 활동 강도</label>
+          <select id="activityLevel" class="activity-select">
+            <option value="1.2">거의 활동 없음</option>
+            <option value="1.375">낮음</option>
+            <option value="1.55" selected>보통</option>
+            <option value="1.725">높음</option>
+            <option value="1.9">매우 높음</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;display:none;">오늘의 끼니 — 안 먹은 끼니는 비워두세요</div>
+      <div class="meal-grid">
+        <div class="meal-cell">
+  <div class="meal-head">
+    <div class="meal-name">
+      <span class="meal-check"></span>
+      <label class="meal-label" for="mealBreakfast">아침</label>
+    </div>
+    <span class="meal-calorie" id="breakfastCalorie">아직 기록 없음</span>
+  </div>
+  <textarea class="meal-input" id="mealBreakfast"
+    placeholder="예: 밥 한 공기, 계란 프라이 2개, 김"></textarea>
+</div>
+
+<div class="meal-cell">
+  <div class="meal-head">
+    <div class="meal-name">
+      <span class="meal-check"></span>
+      <label class="meal-label" for="mealLunch">점심</label>
+    </div>
+    <span class="meal-calorie" id="lunchCalorie">아직 기록 없음</span>
+  </div>
+  <textarea class="meal-input" id="mealLunch"
+    placeholder="예: 김치찌개 1인분, 밥 한 공기"></textarea>
+</div>
+
+<div class="meal-cell">
+  <div class="meal-head">
+    <div class="meal-name">
+      <span class="meal-check"></span>
+      <label class="meal-label" for="mealDinner">저녁</label>
+    </div>
+    <span class="meal-calorie" id="dinnerCalorie">아직 기록 없음</span>
+  </div>
+  <textarea class="meal-input" id="mealDinner"
+    placeholder="예: 삼겹살 1인분"></textarea>
+</div>
+
+<div class="meal-cell">
+  <div class="meal-head">
+    <div class="meal-name">
+      <span class="meal-check"></span>
+      <label class="meal-label" for="mealSnack">간식</label>
+    </div>
+    <span class="meal-calorie" id="snackCalorie">아직 기록 없음</span>
+  </div>
+  <textarea class="meal-input" id="mealSnack"
+    placeholder="예: 바나나 1개, 견과류 한 줌"></textarea>
+</div>
+      </div>
+    </div>
+
+    <div class="inline-btns today-actions">
+      <button class="btn secondary" id="clearTodayBtn" style="display:none;">오늘 기록 초기화</button>
+    </div>
+    <div class="note" style="display:none;">운동은 따로 입력하지 않아도 돼요. 오늘 활동 강도에 이미 포함돼요.</div>
+
+<!-- DDC 에이전트 -->
+
+<div class="today-agent-area">
+
+  <div class="ddc-agent-title">DDC 에이전트</div>
+
+  <div class="ddc-agent-desc">
+    예정된 식사, 활동, 일정 등을 자유롭게 적어주세요. (없으면 안 적으셔도 되요)
+  </div>
+
+  <textarea
+    id="plannedFoods"
+    class="ddc-agent-input"
+    rows="3"
+    placeholder="예: 저녁 회식, 밤 9시 러닝 30분, 야근 예정" 
+  ></textarea>
+
+  <div class="save-today-row">
+  <div class="save-status" id="saveStatus">
+    <span class="save-status-badge">● 오늘 기록 저장됨</span>
+    <span class="save-status-time" id="saveStatusTime"></span>
+  </div>
+
+  <button
+    type="button"
+    class="btn save-today-btn"
+    id="saveTodayBtn"
+  >
+    기록 저장
+  </button>
+</div>
+</section>
+
+    <!-- 오늘 계획 결과 요약 (끼니별·먹은 음식·예정 식사 통합 표시) -->
+    <div id="todayPlanSummary" class="hidden" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+      <div class="card-title" style="margin-bottom:6px;">오늘 계획 요약</div>
+      <div id="mealSummary"><div class="empty">끼니별 기록이 없어요.</div></div>
+      <div id="foodLog" style="margin-top:10px;"><div class="empty">아직 먹은 음식이 없어요.</div></div>
+      <div id="plannedSection" class="hidden" style="margin-top:10px;">
+        <div id="plannedContent"><div class="empty">예정된 식사가 없어요.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 결과 섹션: AI 코치의 판단 → 추천 메뉴 -->
+ <section id="resultSection" class="hidden">
+
+  <div class="card agent-result-card">
+
+    <div class="agent-result-grid">
+
+      <!-- 왼쪽 : 에이전트 코칭 -->
+  <div class="agent-coaching">
+  <div class="card-title">에이전트 코칭</div>
+
+  <p class="strategy-sub">
+    당신의 식단과 생활 패턴을 분석한 오늘의 코칭이에요.
+  </p>
+
+  <div id="strategyContent" class="coaching-blocks">
+    <div class="coaching-item">
+      <div class="coaching-icon">📊</div>
+      <div class="coaching-body">
+        <div class="coaching-title">현재 상태</div>
+        <div class="coaching-text">
+          현재 남은 칼로리와 오늘 섭취량을 기준으로 상태를 분석해드려요.
+        </div>
+      </div>
+    </div>
+
+    <div class="coaching-item">
+      <div class="coaching-icon">🍽️</div>
+      <div class="coaching-body">
+        <div class="coaching-title">식단 분석</div>
+        <div class="coaching-text">
+          오늘 식사 구성에서 탄수화물, 단백질, 지방의 균형을 살펴드려요.
+        </div>
+      </div>
+    </div>
+
+    <div class="coaching-item">
+      <div class="coaching-icon">🏃</div>
+      <div class="coaching-body">
+        <div class="coaching-title">생활 패턴 반영</div>
+        <div class="coaching-text">
+          예정된 활동, 운동, 일정 등을 고려해 다음 식사 방향을 제안해드려요.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- 오른쪽 : 다음 식사 추천 -->
+      <div class="agent-recommend" id="suggestionsSection">
+        <div class="card-title">다음 식사 추천</div>
+
+        <div id="suggestionsContent">
+          <div class="empty">추천을 계산 중이에요.</div>
+        </div>
+      </div>
+
+    </div> <!-- agent-result-grid -->
+
+  </div> <!-- agent-result-card -->
+
+</section>
 
   <div class="note" style="text-align:center; margin-top:16px;">
     소비·음식 칼로리는 활동계수와 일반적인 음식 정보를 이용한 추정치이며 실제 값과 차이가 날 수 있어요.
@@ -171,7 +311,6 @@
 </div>
 
 <script type="module" src="js/app.js"></script>
-
 
 </body>
 </html>

@@ -100,7 +100,7 @@ function renderMealSummary(foods, meals) {
 }
 
 function renderSuggestions(suggestions) {
-  const target = document.getElementById('suggestionsSection');
+ const target = document.getElementById('suggestionsContent');
   if (!target) return;
   if (!suggestions || suggestions.length === 0) {
     target.innerHTML = '<div class="suggestions-empty">추천할 음식이 아직 없어요.</div>';
@@ -108,17 +108,10 @@ function renderSuggestions(suggestions) {
   }
   let html = '<div class="suggestions-grid">';
   for (const s of suggestions) {
-    const category = (s.category || '').toUpperCase();
-    const name = s.name || '이름 없음';
-    const qty = s.qty ? ` (${esc(s.qty)})` : '';
-    const rangeLow = s.calLow ?? s.rangeLow;
-    const rangeHigh = s.calHigh ?? s.rangeHigh;
-    const hasRange = rangeLow != null && rangeHigh != null;
     const note = s.note ? esc(s.note) : '';
-    html += `<div class="suggestion-card ${esc((s.category || ''))}">
-      ${category ? `<span class="hint-tag">${esc(category)}</span>` : ''}
-      <p class="name">${esc(name)}${qty}</p>
-      <p class="range">${hasRange ? '약 ' + fmt(rangeLow) + '~' + fmt(rangeHigh) + ' kcal' : '칼로리 범위 미확인'}</p>
+    html += `<div class="suggestion-card ${esc(s.category || '')}">
+      <p class="name">${esc(s.name)}</p>
+      <p class="range">약 ${fmt(s.rangeLow)}~${fmt(s.rangeHigh)} kcal</p>
       ${note ? `<p class="note">${note}</p>` : ''}
     </div>`;
   }
@@ -132,11 +125,73 @@ function renderResult(data) {
   const goalLabel = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
   $('goalValue').textContent = fmt(data.targetCalories) + ' kcal (' + goalLabel + ')';
   $('currentIntakeValue').textContent = '약 ' + fmt(data.currentIntakeLo) + '~' + fmt(data.currentIntakeHi) + ' kcal';
-  $('remainingValue').textContent = '약 ' + fmt(data.remainingLo) + '~' + fmt(data.remainingHi) + ' kcal';
+  // 남은 칼로리 상태 표시
+if (data.remainingHi < 0) {
+  const overLo = Math.abs(data.remainingHi);
+  const overHi = Math.abs(data.remainingLo);
 
-  const goalLabel2 = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
-  $('goalNote').textContent = '현재 추정치상 ' + goalLabel2 + ' 목표(' + fmt(data.targetCalories) + ' kcal) 대비 상태예요.';
+  $('remainingValue').textContent =
+    '약 ' + fmt(overLo) + '~' + fmt(overHi) + ' kcal 초과';
 
+  $('goalNote').textContent =
+    '현재까지 섭취량을 기준으로 오늘 목표 섭취량을 약 ' +
+    fmt(overLo) + '~' + fmt(overHi) +
+    ' kcal 초과했어요. 추가 섭취는 가볍게 조절하는 것이 좋아요.';
+
+} else if (data.remainingLo < 0) {
+  $('remainingValue').textContent = '목표 범위 근처';
+
+  $('goalNote').textContent =
+    '현재 섭취량은 목표 범위에 가까워요. 추정치에 따라 최대 ' +
+    fmt(Math.abs(data.remainingLo)) + ' kcal 초과하거나 ' +
+    fmt(data.remainingHi) + ' kcal 정도 남을 수 있어요.';
+
+} else {
+  $('remainingValue').textContent =
+    '약 ' + fmt(data.remainingLo) + '~' + fmt(data.remainingHi) + ' kcal';
+
+  $('goalNote').textContent =
+    '현재까지 섭취량을 기준으로 오늘 남은 식사는 약 ' +
+    fmt(data.remainingLo) + '~' +
+    fmt(data.remainingHi) +
+    ' kcal 범위에서 계획할 수 있어요.';
+}
+const mealCalorieTargets = {
+  breakfast: 'breakfastCalorie',
+  lunch: 'lunchCalorie',
+  dinner: 'dinnerCalorie',
+  snack: 'snackCalorie'
+};
+
+for (const [mealKey, elementId] of Object.entries(mealCalorieTargets)) {
+  const el = $(elementId);
+  if (!el) continue;
+
+  const foods = Array.isArray(data.meals?.[mealKey])
+  ? data.meals[mealKey]
+  : Array.isArray(data.foods)
+    ? data.foods.filter(food => food.mealType === mealKey)
+    : [];
+
+  if (foods.length === 0) {
+    el.textContent = '아직 기록 없음';
+    el.style.color = '#94a3b8';
+    continue;
+  }
+
+  const lo = foods.reduce(
+    (sum, food) => sum + (food.calLow ?? 0),
+    0
+  );
+
+  const hi = foods.reduce(
+    (sum, food) => sum + (food.calHigh ?? 0),
+    0
+  );
+
+  el.textContent = '약 ' + fmt(lo) + '~' + fmt(hi) + ' kcal';
+  el.style.color = '#2563eb';
+}
   renderFoodLog(data.foods, data.meals);
 
   const plannedEl = $('plannedContent');
@@ -172,10 +227,91 @@ function renderResult(data) {
     $('plannedSection').classList.add('hidden');
   }
 
-  $('strategyContent').innerHTML =
-    `<div class="strategy-box">${esc(data.strategy || '계산된 전략이 없어요.')}</div>`;
+  function summarizeStrategy(strategy, remainingLo, remainingHi) {
+    if (!strategy) return '계산된 전략이 없어요.';
+    const raw = strategy.split(/\n+/).join(' ').trim();
+    const sentences = raw.split(/(?<=[\u2026.!?])\s+/).map(s => s.trim()).filter(Boolean);
+    if (sentences.length === 0) return '계산된 전략이 없어요.';
+    const kw = /다음 식사|활동량|예정|새 기록|추천이|달라|남은 칼로리|범위/i;
+    const preferred = sentences.filter(s => kw.test(s));
+    const selected = preferred.length ? preferred.slice(0, 4) : sentences.slice(0, 4);
+    let first = selected[0] || '';
+    const hasRemaining = remainingLo != null && remainingHi != null &&
+      !first.includes('약 ' + remainingLo) && !first.includes(remainingHi);
+    if (hasRemaining) {
+      first = '현재 남은 칼로리는 약 ' + remainingLo + '~' + remainingHi + ' kcal예요. ' + first;
+    }
+    return selected.length ? selected.map((s, i) => i === 0 ? first : s).join('<br>') : first;
+  }
 
-  renderSuggestions(data.recommendedFoods);
+  const strategySummary = summarizeStrategy(
+  data.strategy,
+  data.remainingLo,
+  data.remainingHi
+);
+
+let strategyItems = strategySummary
+  .split(/<br>|①|②|③|④/)
+  .map(item => item.trim())
+  .filter(Boolean)
+  .slice(0, 3);
+
+const coachingTitles = [
+  '현재 상태',
+  '식단 분석',
+  '생활 패턴 반영'
+];
+
+const agentInput =
+  document.getElementById('plannedFoods')?.value.trim() || '';
+
+const currentStatus =
+  strategyItems[0] || '현재 상태를 분석하고 있어요.';
+
+const dietAnalysis =
+  strategyItems[1] || '오늘 식사 기록을 입력하면 식단을 분석해드려요.';
+
+const lifestylePattern = agentInput
+  ? (strategyItems[2] || '입력한 일정과 활동을 바탕으로 생활 패턴을 반영하고 있어요.')
+  : 'DDC 에이전트에 예정된 식사, 활동, 일정 등을 적어주세요.';
+
+const coachingItems = [
+  { title: '현재 상태', text: currentStatus },
+  { title: '식단 분석', text: dietAnalysis },
+  { title: '생활 패턴 반영', text: lifestylePattern }
+];
+
+$('strategyContent').innerHTML = `
+  <div class="coaching-blocks">
+    ${coachingItems.map(item => `
+      <div class="coaching-item">
+        <div class="coaching-body">
+          <div class="coaching-title">${item.title}</div>
+          <div class="coaching-text">${esc(item.text)}</div>
+        </div>
+      </div>
+    `).join('')}
+  </div>
+`;
+
+  // 진행바 세팅 (기존 로직 건드리지 않고 추가)
+  if (data.targetCalories) {
+    const fill = $('progressFill');
+    const cur = $('progressCurrent');
+    const goal = $('progressGoal');
+    const pMin = 0;
+    const pMax = Math.max(data.targetCalories, 1);
+    const curVal = Math.min(data.currentIntakeLo, pMax);
+    const pct = Math.min(Math.max((curVal / pMax) * 100, 0), 100);
+   if (fill) {
+  fill.style.width = pct + '%';
+  fill.textContent = pct >= 10 ? Math.round(pct) + '%' : '';
+}
+    if (cur) cur.textContent = '약 ' + fmt(data.currentIntakeLo) + '~' + fmt(data.currentIntakeHi) + ' kcal';
+    if (goal) goal.textContent = '목표 ' + fmt(data.targetCalories) + ' kcal';
+  }
+
+  renderSuggestions(data.mealSuggestions);
 }
 
 export { renderFoodLog, renderMealSummary, renderSuggestions, renderResult };

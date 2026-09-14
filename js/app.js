@@ -1,7 +1,32 @@
-import { $, loadProfile, saveProfile, loadToday, saveToday, clearToday, MEAL_KEYS, todayKey, LS_PROFILE_KEY, showElem, hideElem } from './state.js';
+import { $, fmt, loadProfile, saveProfile, loadToday, saveToday, clearToday, MEAL_KEYS, todayKey, LS_PROFILE_KEY, showElem, hideElem, esc } from './state.js';
 import { fetchCalculation } from './api.js';
 import { displayProfile, renderProfileForm, renderTodayForm, resetProfile } from './forms.js';
 import { renderFoodLog, renderMealSummary, renderSuggestions, renderResult } from './results.js';
+
+// 오늘의 상태 카드 — 목표 칼로리만 표시(현재 섭취/남은/진행바는 초기 상태)
+async function refreshStateCardTargetOnly(profile, activityLevelValue) {
+  if (!profile) return;
+  try {
+    const payload = {
+      profile,
+      activityLevel: parseFloat(activityLevelValue),
+      meals: { breakfast: '', lunch: '', dinner: '', snack: '' },
+      plannedFoods: [],
+    };
+    const data = await fetchCalculation(payload);
+    const goalLabel = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
+    $('goalValue').textContent = fmt(data.targetCalories) + ' kcal (' + goalLabel + ')';
+    $('currentIntakeValue').textContent = '—';
+    $('remainingValue').textContent = '—';
+    const fill = $('progressFill');
+    if (fill) fill.style.width = '0%';
+    $('progressCurrent').textContent = '—';
+    $('progressGoal').textContent = '목표 ' + fmt(data.targetCalories) + ' kcal';
+    $('goalNote').textContent = '현재 프로필 기준으로 오늘 목표 섭취량은 ' + fmt(data.targetCalories) + ' kcal (' + goalLabel + ')예요.';
+  } catch (e) {
+    console.error('상태 카드 목표 갱신 실패', e);
+  }
+}
 
 async function runCalc() {
   const profile = loadProfile();
@@ -42,13 +67,14 @@ async function runCalc() {
   };
 
   hideElem('resultSection');
+  hideElem('todayStateSection');
   $('strategyContent').innerHTML = '<div class="empty">계산 중이에요…</div>';
   showElem('resultSection');
+  showElem('todayStateSection');
   showElem('strategyContent');
 
   try {
     const data = await fetchCalculation(payload);
-    console.log('[DDC] calculate 응답 전체:', JSON.stringify(data, null, 2));
     renderResult(data);
   } catch (e) {
     $('strategyContent').innerHTML =
@@ -76,8 +102,10 @@ $('saveProfileBtn').addEventListener('click', () => {
     alert('체중 입력이 이상해요. 30kg 이상 300kg 이하로 입력해주세요.');
     return;
   }
-  saveProfile({ gender, age, height, weight, goal });
+saveProfile({ gender, age, height, weight, goal });
   displayProfile({ gender, age, height, weight, goal });
+  showElem('todayStateSection');
+  refreshStateCardTargetOnly(loadProfile(), $('activityLevel').value);
 });
 
 $('resetProfileBtn').addEventListener('click', resetProfile);
@@ -86,6 +114,23 @@ $('resetProfileBtn2').addEventListener('click', resetProfile);
 // 오늘 기록 저장
 $('saveTodayBtn').addEventListener('click', runCalc);
 
+$('saveTodayBtn').addEventListener('click', () => {
+  const saveStatus = $('saveStatus');
+  const saveStatusTime = $('saveStatusTime');
+
+  if (!saveStatus || !saveStatusTime) return;
+
+  const now = new Date();
+
+  const dateText = now.toLocaleDateString('ko-KR');
+  const timeText = now.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  saveStatusTime.textContent = `${dateText} ${timeText} 저장`;
+  saveStatus.classList.add('show');
+});
 $('clearTodayBtn').addEventListener('click', () => {
   if (!confirm('오늘 기록을 초기화할까요?')) return;
   clearToday();
@@ -96,6 +141,9 @@ $('clearTodayBtn').addEventListener('click', () => {
   $('plannedFoods').value = '';
   $('activityLevel').value = '1.55';
   hideElem('resultSection');
+  if (loadProfile()) {
+    refreshStateCardTargetOnly(loadProfile(), $('activityLevel').value);
+  }
 });
 
 // 초기 로딩
@@ -103,8 +151,11 @@ $('clearTodayBtn').addEventListener('click', () => {
   const profile = loadProfile();
   if (profile) {
     displayProfile(profile);
+    showElem('todayStateSection');
+    refreshStateCardTargetOnly(profile, $('activityLevel').value);
   } else {
     renderProfileForm(null);
+    hideElem('todayStateSection');
   }
   const today = loadToday();
   $('dateLabel').textContent = '오늘의 기록 · ' + todayKey();
@@ -115,6 +166,7 @@ $('clearTodayBtn').addEventListener('click', () => {
     const hasMeals = today.meals && typeof today.meals === 'object' && !Array.isArray(today.meals)
       && Object.values(today.meals).some(v => v && typeof v === 'string' && v.trim());
     if (hasMeals || today.plannedFoods) {
+      setTimeout(runCalc, 300);
     }
   }
 })();
