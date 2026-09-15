@@ -109,9 +109,9 @@ function buildStrategyPrompt(context) {
 - 모든 수치에는 "약"을 붙이고, 범위 추정 시 "~ kcal" 사용.
 
 ===== 잔여 칼로리 구간별 구성 =====
-${remainingAvg < 500
+${remainingAvg < 700
   ? '- 500 kcal 미만 구간: 가벼운 간식이나 부담 없는 식사로 마무리하는 내용 포함.'
-  : remainingAvg >= 500 && remainingAvg < 1200
+  : remainingAvg >= 700 && remainingAvg < 1200
     ? '- 500~1,200 kcal 구간: 균형 잡힌 정식 한 끼나 알찬 구성으로 남은 양 채우는 내용 포함.'
     : '- 1,200 kcal 이상 구간: 하루 전체 분량이 많이 남았으므로 여러 끼니로 나누어 구성하는 내용 포함.'}
 

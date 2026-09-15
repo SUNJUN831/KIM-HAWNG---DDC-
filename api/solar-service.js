@@ -130,7 +130,7 @@ export async function runDietCoach(body) {
         perPartLo: Math.round((recTargetLo ?? remainingLoCalc) / 3),
         perPartHi: Math.round((recTargetHi ?? remainingHiCalc) / 3),
       };
-    } else if (remainingMid >= 850) {
+    } else if (remainingMid >= 700) {
       // 2분할: 두 끼 정도로 나누어 추천
       splitMeals = {
         parts: 2,

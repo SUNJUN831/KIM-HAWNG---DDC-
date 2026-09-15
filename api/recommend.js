@@ -194,6 +194,10 @@ export function filterCandidatesByHistory(candidates, history) {
 
   return candidates.filter((c) => {
     const cname = (c.name || c.foodNm || '').toLowerCase();
+    
+    if (cname.includes('밥') || cname.includes('면')) {
+      return true;
+    }
     const ccat = (c.category || c.foodLv4Nm || '').toLowerCase();
     for (const h of historyItems) {
       if (!h.name && !h.category) continue;
