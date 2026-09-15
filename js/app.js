@@ -1,7 +1,13 @@
-import { $, fmt, loadProfile, saveProfile, loadToday, saveToday, clearToday, MEAL_KEYS, todayKey, LS_PROFILE_KEY, showElem, hideElem, esc } from './state.js';
+import { $, fmt, loadProfile, saveProfile, loadTodayByKey, saveTodayByKey, clearTodayByKey, activeTodayKey, todayKey, setActiveRecordKey, LS_PROFILE_KEY, showElem, hideElem, esc } from './state.js';
 import { fetchCalculation } from './api.js';
 import { displayProfile, renderProfileForm, renderTodayForm, resetProfile } from './forms.js';
 import { renderFoodLog, renderMealSummary, renderSuggestions, renderResult } from './results.js';
+import { initCalendar } from './calendar.js';
+
+// 현재 활성화된 기록 키(날짜) — picker 선택이 곧 기록 기준
+function currentRecordKey() {
+  return activeTodayKey();
+}
 
 // 오늘의 상태 카드 — 목표 칼로리만 표시(현재 섭취/남은/진행바는 초기 상태)
 async function refreshStateCardTargetOnly(profile, activityLevelValue) {
@@ -42,7 +48,8 @@ async function runCalc() {
   const mealSnack = $('mealSnack').value.trim();
   const plannedRaw = $('plannedFoods').value.trim();
 
-  saveToday({
+  const key = currentRecordKey();
+  saveTodayByKey(key, {
     activityLevel,
     meals: {
       breakfast: mealBreakfast,
@@ -121,6 +128,7 @@ $('saveTodayBtn').addEventListener('click', () => {
   if (!saveStatus || !saveStatusTime) return;
 
   const now = new Date();
+  const recordKey = currentRecordKey();
 
   const dateText = now.toLocaleDateString('ko-KR');
   const timeText = now.toLocaleTimeString('ko-KR', {
@@ -128,12 +136,15 @@ $('saveTodayBtn').addEventListener('click', () => {
     minute: '2-digit'
   });
 
-  saveStatusTime.textContent = `${dateText} ${timeText} 저장`;
+  const label = recordKey === todayKey()
+    ? '오늘'
+    : new Date(recordKey + 'T00:00:00').toLocaleDateString('ko-KR');
+  saveStatusTime.textContent = `${dateText} ${timeText} 저장 (${label})`;
   saveStatus.classList.add('show');
 });
 $('clearTodayBtn').addEventListener('click', () => {
   if (!confirm('오늘 기록을 초기화할까요?')) return;
-  clearToday();
+  clearTodayByKey(currentRecordKey());
   $('mealBreakfast').value = '';
   $('mealLunch').value = '';
   $('mealDinner').value = '';
@@ -145,21 +156,49 @@ $('clearTodayBtn').addEventListener('click', () => {
     refreshStateCardTargetOnly(loadProfile(), $('activityLevel').value);
   }
 });
+// 달력에서 날짜를 변경했을 때
+window.addEventListener('recorddate:changed', (event) => {
+  const recordKey = event.detail?.recordKey;
+  if (!recordKey) return;
 
+  const saved = loadTodayByKey(recordKey);
+
+  // 저장 완료 표시 숨기기
+  const saveStatus = $('saveStatus');
+  if (saveStatus) {
+    saveStatus.classList.remove('show');
+  }
+
+  // 저장된 날짜면 기록 복원
+  if (saved) {
+    renderTodayForm(saved);
+
+    hideElem('todayStateSection');
+    hideElem('resultSection');
+    return;
+  }
+
+  // 저장되지 않은 날짜면 초기 화면
+  $('mealBreakfast').value = '';
+  $('mealLunch').value = '';
+  $('mealDinner').value = '';
+  $('mealSnack').value = '';
+  $('plannedFoods').value = '';
+  $('activityLevel').value = '1.55';
+
+  $('breakfastCalorie').textContent = '아직 기록 없음';
+  $('lunchCalorie').textContent = '아직 기록 없음';
+  $('dinnerCalorie').textContent = '아직 기록 없음';
+  $('snackCalorie').textContent = '아직 기록 없음';
+
+  hideElem('todayStateSection');
+  hideElem('resultSection');
+});
 // 초기 로딩
 (function init() {
   const profile = loadProfile();
-  const recordDatePicker = $('recordDatePicker');
+  initCalendar();
 
-if (recordDatePicker) {
-  const now = new Date();
-
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-
-  recordDatePicker.value = `${year}-${month}-${day}`;
-}
   if (profile) {
     displayProfile(profile);
     // 새로고침 시 자동 계산/상태 카드 갱신 안 함 — 저장 버튼 누를 때만
@@ -168,9 +207,9 @@ if (recordDatePicker) {
     renderProfileForm(null);
     hideElem('todayStateSection');
   }
-  
-  const today = loadToday();
-  $('dateLabel').textContent = '오늘의 기록 · ' + todayKey();
+
+  const today = loadTodayByKey(currentRecordKey());
+  $('dateLabel').textContent = '기록 · ' + currentRecordKey();
   if (today) {
     renderTodayForm(today);
   }
