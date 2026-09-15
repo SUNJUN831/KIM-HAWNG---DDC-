@@ -1,4 +1,4 @@
-import { FOOD_LV3_CODES, FOOD_LV3_NAMES, FOOD_LV3_SERVING_G, pickRandomCodes } from './foodCategories.js';
+import { FOOD_LV3_CODES, FOOD_LV3_NAMES, FOOD_LV3_SERVING_G, pickRandomCodes, BANCHAN_CODES } from './foodCategories.js';
 
 const DEFAULT_BASE = 'https://api.data.go.kr/openapi/tn_pubr_public_nutri_food_info_api'; 
 
@@ -176,7 +176,7 @@ export async function fetchFoodListPages({
   return allRows;
 }
 
-export { getApiKey, getBaseUrl };
+
 
 /**
  * 공공 API에서 남은 칼로리 목표(targetCal)와 유사한 실제 음식을 추출.
@@ -205,7 +205,7 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
       ...others.sort(() => Math.random() - 0.5).slice(0, 5 - Math.min(preferredArr.length, 3)),
     ];
   } else {
-    shuffledCodes = FOOD_LV3_CODES.filter((c) => c !== '00').sort(() => Math.random() - 0.5).slice(0, 5);
+    shuffledCodes = FOOD_LV3_CODES.filter((c) => c !== '00').sort(() => Math.random() - 0.5).slice(0, 15);
   }
   // avoidCodes에 속한 코드는 제외
   if (avoidCodes && avoidCodes.size > 0) {
@@ -224,9 +224,9 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
     shuffledCodes.unshift('01');
   }
   const maxCodesToTry = Math.min(shuffledCodes.length, 15);
-  const poolSize = Math.max(count * 3, 15);
+  const poolSize = Math.max(count * 4, 20);
   const candidates = [];
-  const maxPerCode = Math.max(3, Math.ceil(poolSize / maxCodesToTry));
+  const maxPerCode = Math.max(10, Math.ceil(poolSize / maxCodesToTry));
 
   for (let i = 0; i < maxCodesToTry; i++) {
     const code = shuffledCodes[i];
@@ -235,31 +235,29 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
       const rows = await fetchFoodList({ pageNo: p, numOfRows: 100, type: 'json', foodLv3Cd: code });
       if (rows.length === 0) continue;
 
-      const items = pickOnePerCategory(rows);
+      const items = rows;
       for (const item of items) {
         const enercPer100g = parseInt(item.enerc, 10) || 0;
         const servingG = FOOD_LV3_SERVING_G[code] || 150;
         const actualCal = Math.round(enercPer100g * servingG / 100);
 
         if (actualCal > 0 && Math.abs(actualCal - targetCal) <= toleranceKcal) {
-          const alreadyAdded = candidates.some(
-            (c) => c.category === item.foodLv4Nm
-          );
-          if (alreadyAdded) continue;
           if (codeCount >= maxPerCode) break;
 
           // 간결명: DB foodNm에서 괄호·불필요 접미사 제거, 핵심 음식명만
           function makeDisplayName(foodNm) {
             if (!foodNm) return '';
             let name = foodNm.replace(/\([^)]*\)/g, '');        // 괄호 안 제거
-            name = name.replace(/_간편조리세트|_간편식|_즉석|_냉동|_소금제외|_설탕제외|_소스제외|_기본|_매운맛|_순한맛|_중간맛/g, '');
+            name = name.replace(/_(간편조리세트|간편식|즉석|냉동|소금제외|설탕제외|소스제외|기본|매운맛|순한맛|중간맛)(\/_.*)?$/g, '');
             // _ 구분자를 공백으로 변환 (단어 분리 유지)
             name = name.replace(/_/g, ' ').replace(/  +/g, ' ').trim();
             return name || foodNm;
           }
+          console.log(`[DDC] pickFoodsByCalorieTarget: code=${code} cat=${item.foodLv4Nm || '?'} name=${item.foodNm} cal=${actualCal}`);
           candidates.push({
             name: item.foodNm,
             displayName: makeDisplayName(item.foodNm),
+            nameNormalized: makeDisplayName(item.foodNm).toLowerCase(),
             qty: `${servingG}g`,
             foodSize: servingG,
             calLow: actualCal,
@@ -278,6 +276,41 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
   }
 
   candidates.sort((a, b) => Math.abs(a.calActual - targetCal) - Math.abs(b.calActual - targetCal));
+  // banchan(반찬류 코드) 후보가 1개 이상 있으면 밥(코드 01)을 pool에 추가
+  const hasBanchan = candidates.some(c => BANCHAN_CODES.has(c.code));
+  if (hasBanchan) {
+    console.log('[DDC] pickFoodsByCalorieTarget: banchan 감지 → 밥(코드 01) 추가 시도');
+    try {
+      const riceRows = await fetchFoodList({ pageNo: 1, numOfRows: 100, type: 'json', foodLv3Cd: '01' });
+      if (riceRows.length > 0) {
+        for (const item of riceRows) {
+          const enercPer100g = parseInt(item.enerc, 10) || 0;
+          const servingG = FOOD_LV3_SERVING_G['01'] || 210;
+          const actualCal = Math.round(enercPer100g * servingG / 100);
+          if (actualCal > 0 && Math.abs(actualCal - targetCal) <= toleranceKcal) {
+            candidates.push({
+              name: item.foodNm,
+              displayName: makeDisplayName(item.foodNm),
+              nameNormalized: makeDisplayName(item.foodNm).toLowerCase(),
+              qty: `${servingG}g`,
+              foodSize: servingG,
+              calLow: actualCal,
+              calHigh: actualCal,
+              note: '밥류',
+              category: item.foodLv4Nm || '밥류',
+              lv3Nm: FOOD_LV3_NAMES['01'] || '밥류',
+              calActual: actualCal,
+              code: '01',
+            });
+            console.log(`[DDC] pickFoodsByCalorieTarget: 밥 추가 code=01 name=${item.foodNm} cal=${actualCal}`);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      console.log('[DDC] pickFoodsByCalorieTarget: 밥 fetch 실패:', e.message);
+    }
+  }
   // category별 중복 제거한 pool을 Solar한테 전달 (Solar가 중복 없이 4개 선택)
   const pool = await selectDiverseCandidates(candidates, targetCal, poolSize);
   return pool;

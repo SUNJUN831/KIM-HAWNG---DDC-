@@ -110,9 +110,11 @@ function renderSuggestions(suggestions) {
   for (const s of suggestions) {
     const note = s.note ? esc(s.note) : '';
     const category = s.mealType || '';
+    const kcal = (s.kcal && s.kcal > 0) ? fmt(s.kcal) : '—';
+    const weight = s.gram ? ` · ${s.gram}g` : '';
     html += `<div class="suggestion-card ${esc(category)}">
       <p class="name">${esc(s.name)}</p>
-      <p class="range">약 ${fmt(s.calLow)} kcal</p>
+      <p class="range">약 ${kcal} kcal${weight}</p>
       ${note ? `<p class="note">${note}</p>` : ''}
     </div>`;
   }
@@ -263,6 +265,9 @@ if (strategyItems.length < 3 && data.strategy) {
   const raw = data.strategy;
   const sentences = raw.split(/(?<=[\u2026.!?])\s+/).map(s => s.trim()).filter(Boolean);
 
+  // 이미 strategyItems에 들어간 문장은 재사용하지 않도록 추적
+  const usedSentences = new Set(strategyItems.map(s => s.trim()));
+
   // plannedFoods 이름이 언급된 문장 추출
   const plannedNames = (data.plannedFoods || [])
     .map(p => p.name)
@@ -273,22 +278,37 @@ if (strategyItems.length < 3 && data.strategy) {
     : [];
 
   for (let i = strategyItems.length; i < 3; i++) {
+    let candidate = '';
     if (i === 2 && relevantSentences.length > 0) {
       // 생활패턴 반영 칸에는 예정 음식 관련 전략 문장을 넣음
-      strategyItems.push(relevantSentences.slice(0, 2).join(' '));
-    } else if (i === 1 && strategyItems.length < 2) {
-      strategyItems.push(sentences[0] || strategyItems[0] || '');
+      const unused = relevantSentences.filter(s => !usedSentences.has(s));
+      candidate = unused.length > 0 ? unused[0] : relevantSentences[0];
+    } else if (i === 1) {
+      // 식단 분석 칸 — 현재 상태랑 다른 문장 우선
+      const unused = sentences.filter(s =>
+        !usedSentences.has(s) &&
+        !s.includes('약 ') && !s.includes('kcal') // 현재 상태 문장과 겹칠 만한 수치 문장 제외
+      );
+      candidate = unused.length > 0 ? unused[0] : (sentences[0] || '');
     } else {
-      strategyItems.push(strategyItems[strategyItems.length - 1] || '');
+      // 현재 상태 칸 — 남은 칼로리 언급 문장 우선, 없으면 첫 문장
+      const withRemaining = sentences.filter(s =>
+        !usedSentences.has(s) &&
+        (s.includes('남은') || s.includes('칼로리') || s.includes('목표'))
+      );
+      candidate = withRemaining.length > 0 ? withRemaining[0] : (sentences[0] || '');
     }
+    // 이미 사용된 문장이면 슬롯 성격에 맞는 기본 문구로 fallback
+    if (usedSentences.has(candidate)) {
+      if (i === 0) candidate = '현재 상태를 분석하고 있어요.';
+      else if (i === 1) candidate = '오늘 식사 기록을 입력하면 식단을 분석해드려요.';
+      else candidate = 'DDC 에이전트에 예정된 식사, 활동, 일정 등을 적어주세요.';
+    }
+    strategyItems.push(candidate);
+    usedSentences.add(candidate);
   }
 }
 
-const coachingTitles = [
-  '현재 상태',
-  '식단 분석',
-  '생활 패턴 반영'
-];
 
 const agentInput =
   document.getElementById('plannedFoods')?.value.trim() || '';
@@ -301,10 +321,19 @@ const dietAnalysis =
     ? '입력한 내용을 바탕으로 식단을 분석해드렸어요.'
     : '오늘 식사 기록을 입력하면 식단을 분석해드려요.');
 
-const lifestylePattern =
-  strategyItems[2] || (agentInput
-    ? '입력한 일정을 반영했어요. 자세한 내용은 현재 상태 항목을 참고하세요.'
-    : 'DDC 에이전트에 예정된 식사, 활동, 일정 등을 적어주세요.');
+// 생활패턴 반영: strategyItems[2]가 없거나 기본 안내문구면 agentInput 기반으로 직접 생성
+const lifestyleFallback = agentInput
+  ? '입력한 내용(예정된 식사·활동·일정)을 반영했어요. 자세한 내용은 현재 상태 항목을 참고하세요.'
+  : 'DDC 에이전트에 예정된 식사, 활동, 일정 등을 적어주세요.';
+
+let lifestylePattern = strategyItems[2] || '';
+
+// strategyItems[2]가 기본 안내문구(사용자 입력 없는 경우 기본값)이면 agentInput 기반으로 교체
+if (!lifestylePattern ||
+    lifestylePattern.includes('DDC 에이전트에 예정된 식사') ||
+    lifestylePattern.includes('입력한 일정을 반영했어요')) {
+  lifestylePattern = lifestyleFallback;
+}
 
 const coachingItems = [
   { title: '현재 상태', text: currentStatus },
