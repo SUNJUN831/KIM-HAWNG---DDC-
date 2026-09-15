@@ -177,7 +177,6 @@ export async function fetchFoodListPages({
 }
 
 
-
 /**
  * 공공 API에서 남은 칼로리 목표(targetCal)와 유사한 실제 음식을 추출.
  * FOOD_LV3_CODES에서 랜덤 코드 선택 → fetch → 카테고리별 1개 추출 →

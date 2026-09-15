@@ -3,6 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const LS_PROFILE_KEY = 'ddc_profile';
 const LS_TODAY_PREFIX = 'ddc_today_';
+const LS_ACTIVE_KEY = 'ddc_active_record_key';
 
 const MEAL_KEYS = [
   { key: 'breakfast', label: '아침' },
@@ -17,6 +18,40 @@ function todayKey() {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+}
+
+function activeRecordKey() {
+  try {
+    return localStorage.getItem(LS_ACTIVE_KEY);
+  } catch { return null; }s
+}
+
+function setActiveRecordKey(key) {
+  if (!key || typeof key !== 'string' || !key.match(/^\d{4}-\d{2}-\d{2}$/)) return;
+  try { localStorage.setItem(LS_ACTIVE_KEY, key); } catch {}
+}
+
+function activeTodayKey() {
+  const key = activeRecordKey();
+  return key || todayKey();
+}
+
+function loadTodayByKey(key) {
+  try {
+    const raw = localStorage.getItem(LS_TODAY_PREFIX + key);
+    if (!raw) return null;
+    const t = JSON.parse(raw);
+    if (!t || typeof t.activityLevel !== 'string') return null;
+    return t;
+  } catch { return null; }
+}
+
+function saveTodayByKey(key, t) {
+  localStorage.setItem(LS_TODAY_PREFIX + key, JSON.stringify(t));
+}
+
+function clearTodayByKey(key) {
+  localStorage.removeItem(LS_TODAY_PREFIX + key);
 }
 
 function loadProfile() {
@@ -34,21 +69,15 @@ function saveProfile(p) {
 }
 
 function loadToday() {
-  try {
-    const raw = localStorage.getItem(LS_TODAY_PREFIX + todayKey());
-    if (!raw) return null;
-    const t = JSON.parse(raw);
-    if (!t || typeof t.activityLevel !== 'string') return null;
-    return t;
-  } catch { return null; }
+  return loadTodayByKey(activeTodayKey());
 }
 
 function saveToday(t) {
-  localStorage.setItem(LS_TODAY_PREFIX + todayKey(), JSON.stringify(t));
+  saveTodayByKey(activeTodayKey(), t);
 }
 
 function clearToday() {
-  localStorage.removeItem(LS_TODAY_PREFIX + todayKey());
+  clearTodayByKey(activeTodayKey());
 }
 
 function showElem(id) { $(id).classList.remove('hidden'); }
@@ -65,4 +94,4 @@ function esc(s) {
   }[c]));
 }
 
-export { $, LS_PROFILE_KEY, LS_TODAY_PREFIX, MEAL_KEYS, todayKey, loadProfile, saveProfile, loadToday, saveToday, clearToday, showElem, hideElem, fmt, esc };
+export { $, LS_PROFILE_KEY, LS_TODAY_PREFIX, LS_ACTIVE_KEY, MEAL_KEYS, todayKey, activeRecordKey, setActiveRecordKey, activeTodayKey, loadTodayByKey, saveTodayByKey, clearTodayByKey, loadProfile, saveProfile, loadToday, saveToday, clearToday, showElem, hideElem, fmt, esc };

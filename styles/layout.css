@@ -95,8 +95,36 @@
 .header-calendar {
   position: absolute;
   top: 0;
-  right: 0;
-  z-index: 20;
+  right: 20px;
+  z-index: 100;
+}
+
+.calendar-date-input {
+  height: 38px;
+  padding: 0 12px;
+
+  background: #ffffff;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.calendar-date-input:hover {
+  border-color: #b8cdf5;
+  background: #f8fbff;
+}
+
+.calendar-date-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
 .calendar-button {

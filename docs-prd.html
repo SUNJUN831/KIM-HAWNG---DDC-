@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRD — 오늘 하루 식단 코치</title>
+<title>Final MVP PRD — 오늘 하루 식단 코치</title>
 <link rel="stylesheet" href="styles/docs.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <h2>📋 MVP PRD</h2>
-      <div class="sub">오늘 하루 식단 코치 · v1.0</div>
+      <div class="sub">오늘 하루 식단 코치 · Final MVP PRD v2.0</div>
     </div>
     <div class="nav-section">스킬 매핑</div>
     <a class="nav-item active" data-target="sec1">
@@ -82,7 +82,7 @@
       </div>
       <div class="section-body">
         <div class="highlight">
-          감량·유지·증량을 목표로 하는 20~30대 직장인·대학생이, 오늘 이미 먹은 양과 오늘 활동 기준으로 <strong>남은 하루 식사 범위를 숫자와 전략으로 확인</strong>하고, 회식·외식처럼 계획이 바뀌는 식사 앞에서도 얼마나 조절할지 판단하도록 돕는 웹 서비스.
+          오늘 먹은 음식과 활동 상태를 바탕으로 <strong>현재 섭취 상태를 분석</strong>하고, 남은 하루의 <strong>식사 전략과 다음 식사 메뉴를 제안</strong>하는 개인 맞춤형 식단 코칭 에이전트.
         </div>
         <p style="font-size:12px; color:var(--muted); margin-top:8px;">← A-1 ⑤ SOLVE 답변 기반</p>
       </div>
@@ -99,15 +99,24 @@
         <div class="p-grid">
           <div class="p-card">
             <h4>누구</h4>
-            <div class="value">20~30대 <strong>직장인·대학생</strong><br>감량·유지·증량을 신경 쓰지만, 회식·외식·간식처럼 <strong>식사 계획이 자주 바뀌는</strong> 사람</div>
+            <div class="value">
+              <strong>매번 음식 칼로리를 직접 검색·계산하기 번거로운</strong> 사람<br>
+              오늘 얼마나 먹었는지 <strong>간단히 기록하고 확인</strong>하고 싶은 사람<br>
+              남은 칼로리뿐 아니라 <strong>다음 식사를 어떻게 구성할지</strong> 도움받고 싶은 사람
+            </div>
           </div>
           <div class="p-card">
             <h4>고통 지점</h4>
-            <div class="value">지금까지 먹은 양을 기준으로 <strong>"오늘 얼마나 더 먹을 수 있는지"</strong>, <strong>"남은 식사를 어떻게 조절할지"</strong> 판단이 어려움</div>
+            <div class="value">
+              먹은 음식의 칼로리를 매번 직접 찾아 계산하기 어렵고, 현재까지의 섭취량을 알아도 <strong>남은 식사를 어떻게 조절해야 할지</strong> 판단하기 어려움<br>
+              회식·외식처럼 계획이 바뀌거나 감량·유지·증량 <strong>목표에 맞춰 식사를 조절</strong>해야 할 때 기준이 모호함
+            </div>
           </div>
           <div class="p-card">
             <h4>접근성</h4>
-            <div class="value">언어: <strong>한국어</strong><br>비용: 유료 코칭 없이 간단히<br>디지털 문해력: 높지 않게 — <strong>음식 이름·양만 문장으로 입력</strong>하면 사용 가능</div>
+            <div class="value">언어: <strong>한국어</strong><br>
+            비용: 유료 코칭 없이 간단히<br>
+            디지털 문해력: 높지 않게 — <strong>아침·점심·저녁·간식별로 먹은 음식을 자연어로 입력</strong>하면 사용 가능</div>
           </div>
           <div class="p-card">
             <h4>핵심 페르소나</h4>
@@ -126,10 +135,10 @@
       </div>
       <div class="section-body">
         <p style="font-size:14px; line-height:1.7;">
-          오늘 점심·간식까지 먹은 양을 기준으로, 저녁·회식·외식을 앞두고 <strong>"오늘 얼마나 더 먹을 수 있는지"</strong>, <strong>"남은 식사를 어떻게 조절할지"</strong>를 머릿속으로만 어림짐작해야 해서 판단이 어렵고, 과식하거나 반대로 너무 제한하는 결과를 낳음.
+          먹은 음식의 칼로리를 <strong>매번 직접 찾아 계산</strong>하기 어렵고, 현재까지 얼마나 먹었는지도 파악하기 번거로움. 현재까지 섭취량을 알아도 <strong>남은 하루에 무엇을 얼마나 먹어야 하는지</strong> 판단하기 어렵고, 회식·외식·간식처럼 계획이 바뀌면 기존 식단 계획을 <strong>어떻게 조절해야 할지 기준이 모호</strong>함.
         </p>
         <div class="highlight warn" style="margin-top:12px;">
-          또 하루 식사 후 오늘 총 섭취량을 목표와 비교해 정리하는 것도 번거로움 — 숫자로 보기 전까지 "오늘 얼마나 먹었는지" 감으로만 알고 넘어감.
+          일반적인 식단 기록 과정에서는 섭취량을 확인한 뒤에도, 그 결과를 다음 식사 행동으로 연결하는 판단을 사용자가 직접 해야 하는 경우가 많음. DDC는 <strong>기록 → 상태 분석 → 코칭 → 다음 식사 추천</strong>의 흐름으로 이 연결을 돕는 서비스.
         </div>
       </div>
     </section>
@@ -144,31 +153,37 @@
       <div class="section-body">
         <div class="journey">
           <div class="journey-step">
-            <div class="time">아침</div>
-            <div class="event">하루 식사 계획</div>
-            <div class="desc">오늘 뭐 먹을지 대략 계획할 때</div>
+            <div class="time">식사 기록</div>
+            <div class="event">오늘 먹은 음식 기록 + 현재 상태 확인</div>
+            <div class="desc">오늘 먹은 음식을 기록하고 현재 섭취 상태를 확인하고 싶을 때</div>
           </div>
           <div class="journey-arrow">→</div>
           <div class="journey-step">
-            <div class="time">식사 후</div>
-            <div class="event">먹은 음식 기록</div>
-            <div class="desc">점심·간식 먹은 뒤 바로 기록</div>
+            <div class="time">식사 후 판단</div>
+            <div class="event">남은 식사 조절</div>
+            <div class="desc">점심이나 간식 이후 남은 식사를 어떻게 조절할지 고민될 때</div>
           </div>
           <div class="journey-arrow">→</div>
           <div class="journey-step">
-            <div class="time">회식·외식 전</div>
-            <div class="event">남은 범위 확인</div>
-            <div class="desc">오늘 얼마나 더 먹을 수 있는지 확인</div>
+            <div class="time">예정 식사 전</div>
+            <div class="event">예정 식사 분석</div>
+            <div class="desc">회식·외식·간식 등 예정된 식사가 있어 미리 식사 방향을 판단하고 싶을 때</div>
           </div>
           <div class="journey-arrow">→</div>
           <div class="journey-step">
-            <div class="time">하루 끝</div>
-            <div class="event">정리</div>
-            <div class="desc">오늘 총 섭취량 vs 목표 결과 확인</div>
+            <div class="time">기록 조회</div>
+            <div class="event">과거 기록 확인</div>
+            <div class="desc">과거 날짜의 식사 기록과 당시 결과를 다시 확인하고 싶을 때</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <h4 style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">서비스 이용 흐름</h4>
+          <div style="font-size:13px; line-height:1.8; color:var(--text);">
+            <strong>프로필 등록</strong> → <strong>기록 날짜 선택</strong> → <strong>아침/점심/저녁/간식 입력</strong> → (필요 시) <strong>추가 일정·예정 식사 입력</strong> → <strong>기록 저장</strong> → <strong>상태 분석 및 코칭 확인</strong> → <strong>다음 식사 추천 확인</strong>
           </div>
         </div>
         <div class="highlight" style="margin-top:12px;">
-          사건 기준. 특정 시간대보다 <strong>"언제든 URL로 와서"</strong> 필요한 순간마다 확인하는 흐름.
+          특정 시간대보다 필요한 순간마다 URL로 접속해 사용하는 흐름. 과거 날짜 기록을 조회해 당시 섭취 상태도 확인할 수 있음.
         </div>
       </div>
     </section>
@@ -187,38 +202,41 @@
           <div class="feature-item">
             <div class="feature-badge p0">P0</div>
             <div class="feature-content">
-              <h4>① 기본 프로필 등록 + 저장</h4>
-              <p>성별·나이·키·체중·목표(감량/유지/증량) 처음 한 번 등록 → <span class="tag local">localStorage</span> 재접속 시 재입력 안 함, 초기화 버튼 제공</p>
+              <h4>① 개인 프로필 기반 목표 설정</h4>
+              <p>성별·나이·키·체중·목표(감량/유지/증량) 등록 → <span class="tag local">localStorage</span> 저장, 재접속 시 유지<br>
+              오늘 활동 강도 5단계(거의 없음/낮음/보통/높음/매우 높음) 선택 → <strong>BMR(Mifflin-St Jeor) + 활동계수 + 목표 조정</strong>으로 하루 목표 섭취량 계산<br>
+              운동 소모 칼로리는 활동 강도에 이미 포함 (별도 입력 불필요)</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="feature-badge p0">P0</div>
             <div class="feature-content">
-              <h4>② 오늘 활동 강도 선택 (5단계)</h4>
-              <p>거의 없음 / 낮음 / 보통 / 높음 / 매우 높음 — <strong>운동 소모 칼로리 별도 미입력</strong>, 활동 강도에 이미 포함 → 중복 계산 방지</p>
+              <h4>② 끼니별 자연어 식사 기록 + 현재 상태 분석</h4>
+              <p>아침·점심·저녁·간식 4개 textarea에 먹은 음식을 자연어로 입력 → Solar Pro 4가 각 음식의 <strong>추정 칼로리 범위(하한~상한)</strong> 산출<br>
+              끼니별·전체 섭취량 합계 표시 (추정임을 명시)<br>
+              필요 시 추가 일정·예정 식사 textarea에 입력 가능<br>
+              <strong>현재 섭취 상태 요약</strong>: 현재까지 섭취한 칼로리 범위 + 목표 섭취 칼로리 + 남은 칼로리(또는 초과 상태) + 목표 대비 진행도 바</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="feature-badge p0">P0</div>
             <div class="feature-content">
-              <h4>③ 오늘 먹은 음식·양 자연어 입력 → 추정 범위</h4>
-              <p>라면 1개, 삼겹살 200g, 김밥 한 줄 등 자연어로 입력 → 끼니별·전체 <strong>추정 칼로리 범위</strong> 제시 (추정임을 명시)</p>
+              <h4>③ DDC 에이전트 코칭 + 다음 식사 추천</h4>
+              <p><span class="tag sol">Solar Pro 4</span> <strong>에이전트 코칭 3블록</strong> 제공:<br>
+              • <strong>현재 상태</strong> — 현재까지 섭취량과 남은 칼로리를 바탕으로 종합 상태 분석<br>
+              • <strong>식단 분석</strong> — 오늘 식사 구성의 균형을 살펴봄<br>
+              • <strong>생활 패턴 반영</strong> — 입력한 추가 일정·예정 식사 등을 고려한 다음 식사 방향 제안<br>
+              <span class="tag sol">Solar Pro 4</span> <strong>다음 식사 추천</strong> — 현재 섭취 상태와 남은 칼로리를 기준으로 다음 식사 후보 음식 카드 제시 (추천 메뉴별 예상 칼로리와 간단한 설명 포함)</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="feature-badge p0">P0</div>
             <div class="feature-content">
-              <h4>④ 오늘 기준 요약 + 식사 전략</h4>
-              <p><strong>목표 섭취칼로리 + 현재 섭취량 + 남은 범위</strong> 한눈에 요약 + 식사 전략 제시<br>
-              • 예정 식사 있으면 → 총 섭취량 예상 + 목표 대비 판단 + 조절 안내<br>
-              • 예정 식사 없으면 → 남은 칼로리 기준 다음 식사량·메뉴 방향 추천</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-badge p1">P1</div>
-            <div class="feature-content">
-              <h4>하루 종료 후 목표 대비 결과 확인</h4>
-              <p>오늘 총 섭취량 vs 목표(감량/유지/증량) 대비 결과를 간단히 확인</p>
+              <h4>④ 날짜별 기록 관리 + 분석 결과 저장·복원</h4>
+              <p>날짜 선택기로 오늘 또는 과거 날짜 선택 → 해당 날짜 기록으로 전환. 오늘이 기본값<br>
+              선택한 날짜의 기록 저장(날짜 기준 localStorage) + 초기화 기능<br>
+              저장 당시의 <strong>분석·코칭·추천 결과를 그대로 복원</strong> — 다른 날짜로 이동했다가 돌아오거나 새로고침해도 마지막 저장 결과 유지<br>
+              저장된 기록을 수정한 뒤 다시 저장하면 최신 입력 기준으로 결과가 갱신됨</p>
             </div>
           </div>
         </div>
@@ -234,26 +252,30 @@
       </div>
       <div class="section-body">
         <div class="highlight" style="margin-bottom:12px;">
-          서비스의 역할은 <strong>계산층(코드)</strong>과 <strong>해석·전략층(Solar Pro 4)</strong>으로 나눈다.
+          서비스는 <strong>입력 → 계산 → 현재 상태 해석 → 코칭 → 다음 식사 추천</strong>의 흐름으로 동작한다.
         </div>
 
         <div class="p-grid">
           <div class="p-card">
-            <h4><span class="tag calc">계산층 · 코드</span> 서버사이드 직접 연산</h4>
+            <h4><span class="tag calc">계산층 · 코드</span> 입력 데이터와 규칙을 바탕으로 수치 계산</h4>
             <div class="value" style="font-size:13px;">
-              • BMR (Mifflin-St Jeor, 원값 사용)<br>
-              • 오늘 활동계수 적용 → 오늘 예상 소비칼로리<br>
-              • 감량/유지/증량 목표 조정<br>
-              • 현재 섭취 하한·상한 합계<br>
-              • 남은 칼로리 범위
+              • 사용자 프로필(성별·나이·키·체중)과 활동 수준을 바탕으로 <strong>하루 목표 섭취량 산정</strong> (BMR Mifflin-St Jeor + 활동계수 + 감량/유지/증량 목표 조정)<br>
+              • 아침·점심·저녁·간식별 섭취량을 집계해 <strong>현재 총 섭취량 계산</strong><br>
+              • 각 끼니의 음식별 칼로리를 하나의 확정값이 아니라 <strong>추정 범위로 계산</strong> (하한~상한)<br>
+              • 목표 대비 <strong>남은 칼로리 또는 초과 상태</strong> 계산<br>
+              • 날짜별 저장·복원 처리
             </div>
           </div>
           <div class="p-card">
-            <h4><span class="tag sol">해석·전략층 · Solar Pro 4</span> 모델명 <code>solar-pro4</code> 고정</h4>
+            <h4><span class="tag sol">해석·전략층 · Solar Pro 4</span></h4>
             <div class="value" style="font-size:13px;">
-              • 자연어 음식·양 해석 (라면 1개, 삼겹살 200g 등)<br>
-              • 각 음식 추정 칼로리 범위(하한~상한) 산출<br>
-              • "오늘 전략" 텍스트 생성 (끼니별 균형, 조절 안내 등)
+              • 자연어로 입력된 음식·양 해석 (라면 1개, 삼겹살 200g 등)<br>
+              • 각 음식의 <strong>추정 칼로리 범위(하한~상한)</strong> 산출<br>
+              • <strong>현재까지의 섭취 상태를 해석</strong> — 현재 섭취량, 목표 대비 상황, 남은 칼로리 범위를 종합해 설명<br>
+              • <strong>오늘 식단 구성 분석</strong> — 아침·점심·저녁·간식의 균형과 구성 특징을 살펴봄<br>
+              • 사용자가 입력한 <strong>추가 일정·예정 식사 반영</strong> — 예정 식사 시 총 섭취량 예상과 목표 대비 판단을 함께 생성<br>
+              • 해석 결과를 바탕으로 <strong>남은 하루의 식사 방향 코칭</strong> (현재 상태 / 식단 분석 / 생활 패턴 반영 3블록)<br>
+              • 현재 상태에 적합한 <strong>다음 식사 메뉴 추천</strong> — 추천 후보 음식 카드와 예상 칼로리·간단한 설명 제공
             </div>
           </div>
         </div>
@@ -278,7 +300,7 @@
       <div class="section-body">
         <div class="io-flow">
           <div class="io-box">
-            <div class="label">입력 — 기본 프로필 (첫 등록)</div>
+            <div class="label">입력 — 사용자 프로필 (첫 등록, 한 번만)</div>
             <ul>
               <li>성별 (남성/여성)</li>
               <li>나이 (세)</li>
@@ -289,21 +311,50 @@
           </div>
           <div class="io-arrow">→</div>
           <div class="io-box">
+            <div class="label">입력 — 기록 날짜</div>
+            <ul>
+              <li>날짜 선택기로 오늘 또는 과거 날짜 선택 (오늘이 기본값)</li>
+            </ul>
+          </div>
+          <div class="io-arrow">→</div>
+          <div class="io-box">
             <div class="label">입력 — 오늘 기록 (매일)</div>
             <ul>
-              <li>활동 강도 5단계</li>
-              <li>먹은 음식·양 (자연어)</li>
-              <li>예정 음식 (있으면)</li>
+              <li>오늘 활동 수준 — 5단계 중 선택 (거의 없음 / 낮음 / 보통 / 높음 / 매우 높음)</li>
+              <li>아침 식사 — 먹은 음식을 자연어로 입력</li>
+              <li>점심 식사 — 먹은 음식을 자연어로 입력</li>
+              <li>저녁 식사 — 먹은 음식을 자연어로 입력</li>
+              <li>간식 — 먹은 음식을 자연어로 입력</li>
+              <li>추가 일정 또는 예정 식사 — 있으면 자유롭게 입력 (없으면 생략 가능)</li>
             </ul>
+            <p style="font-size:12px; color:var(--muted); margin-top:6px;">
+              식사는 아침·점심·저녁·간식별로 나누어 각 끼니에 먹은 음식을 자연어로 입력하는 방식입니다.
+            </p>
           </div>
           <div class="io-arrow">→</div>
           <div class="io-box">
             <div class="label">출력 — 화면에 보이는 것</div>
             <ul>
-              <li>목표·현재·남은 칼로리 요약</li>
-              <li>먹은 음식별 추정 칼로리 기록</li>
-              <li>예정 식사 분석 (있으면)</li>
-              <li>오늘 전략 텍스트</li>
+              <li><strong>음식별 추정 칼로리 범위</strong> — 각 음식의 하한~상한 kcal (예: 약 400~550 kcal)</li>
+              <li><strong>끼니별 섭취량</strong> — 아침·점심·저녁·간식별 합계 칼로리 범위</li>
+              <li><strong>현재까지의 총 섭취 칼로리 범위</strong> — 모든 끼니 합산</li>
+              <li><strong>목표 섭취 칼로리</strong> — 프로필과 활동 수준으로 산정한 하루 목표</li>
+              <li><strong>남은 칼로리 또는 초과 상태</strong> — 목표 대비 남은 칼로리 범위, 초과 시 초과량 표시</li>
+              <li><strong>목표 대비 섭취 진행도</strong> — 현재 섭취량의 목표 대비 비율을 진행도 바로 표시</li>
+              <li><strong>DDC 에이전트 코칭</strong> (Solar Pro 4):
+                <ul style="margin-top:4px; margin-left:16px;">
+                  <li><strong>현재 상태</strong> — 현재 섭취량과 남은 칼로리를 바탕으로 종합 상태 분석</li>
+                  <li><strong>식단 분석</strong> — 오늘 식사 구성의 균형·특징을 살펴봄</li>
+                  <li><strong>생활 패턴 반영</strong> — 입력한 추가 일정·예정 식사 등을 고려한 다음 식사 방향 제안</li>
+                </ul>
+              </li>
+              <li><strong>다음 식사 추천</strong> (Solar Pro 4):
+                <ul style="margin-top:4px; margin-left:16px;">
+                  <li><strong>추천 메뉴</strong> — 현재 상태와 남은 칼로리에 맞는 후보 음식</li>
+                  <li><strong>예상 칼로리</strong> — 추천 메뉴별 예상 칼로리 범위</li>
+                  <li><strong>간단한 설명</strong> — 왜 이 메뉴가 어울리는지 한 줄 설명</li>
+                </ul>
+              </li>
             </ul>
           </div>
         </div>
@@ -318,28 +369,40 @@
               <th>비고</th>
             </tr>
             <tr>
-              <td>기본 프로필 (성별·나이·키·체중·목표)</td>
+              <td>사용자 프로필 (성별·나이·키·체중·목표)</td>
               <td><span class="tag local">localStorage</span></td>
               <td>날짜 무관 지속</td>
-              <td>한 번 등록하면 계속 유지, 초기화 버튼으로 삭제</td>
+              <td>한 번 등록하면 재접속 시에도 유지된다. 초기화 버튼으로 삭제 가능</td>
             </tr>
             <tr>
-              <td>오늘 활동 강도</td>
-              <td><span class="tag local">localStorage</span></td>
-              <td>날짜 기준 (오늘)</td>
-              <td>같은 날 재접속 시 유지, 날짜 바뀌면 새 기록</td>
+              <td>선택한 기록 날짜</td>
+              <td>브라우저 저장공간</td>
+              <td>현재 선택 기준</td>
+              <td>날짜 선택기로 오늘 또는 과거 날짜를 선택한다. 오늘이 기본값이며, 날짜를 변경하면 해당 날짜에 저장된 기록을 불러온다. 저장된 기록이 없는 날짜는 빈 기록으로 시작한다</td>
             </tr>
             <tr>
-              <td>오늘 먹은 음식</td>
-              <td><span class="tag local">localStorage</span></td>
-              <td>날짜 기준 (오늘)</td>
-              <td>같은 날 재접속 시 유지, 음식 추가 입력 시 갱신</td>
+              <td>오늘 활동 수준 (5단계)</td>
+              <td>브라우저 저장공간</td>
+              <td>선택한 날짜 기준</td>
+              <td>같은 날짜를 다시 열면 유지된다. 날짜를 바꾸면 새 기록으로 시작</td>
             </tr>
             <tr>
-              <td>오늘 예정 음식</td>
-              <td><span class="tag local">localStorage</span></td>
-              <td>날짜 기준 (오늘)</td>
-              <td>없으면 생략 가능</td>
+              <td>아침·점심·저녁·간식별 먹은 음식 (자연어 입력)</td>
+              <td>브라우저 저장공간</td>
+              <td>선택한 날짜 기준</td>
+              <td>같은 날짜를 다시 열면 유지된다. 음식을 추가 입력하면 갱신된다</td>
+            </tr>
+            <tr>
+              <td>추가 일정·예정 식사 (자연어 입력)</td>
+              <td>브라우저 저장공간</td>
+              <td>선택한 날짜 기준</td>
+              <td>없으면 생략 가능. 같은 날짜를 다시 열면 유지된다</td>
+            </tr>
+            <tr>
+              <td>기록 저장 시점의 분석·코칭·추천 결과</td>
+              <td>브라우저 저장공간</td>
+              <td>선택한 날짜 기준</td>
+              <td>기록을 저장하면 그 시점에 생성된 분석 결과, 에이전트 코칭, 다음 식사 추천 결과가 함께 저장된다. 다른 날짜로 이동했다가 다시 해당 날짜로 돌아오면 저장된 결과를 그대로 복원하며, API를 다시 호출하지 않는다. 브라우저를 새로고침해도 저장된 기록과 결과는 유지된다. 저장한 식사 내용을 수정한 뒤 다시 기록 저장을 누르면 최신 입력을 기준으로 분석·추천을 다시 수행하고 기존 결과를 갱신한다</td>
             </tr>
           </table>
         </div>
@@ -356,29 +419,28 @@
       <div class="section-body">
         <div class="p-grid">
           <div class="p-card">
-            <h4>(a) 배포 연결</h4>
-            <div class="value">Vercel 프로젝트 연결 → 프로덕션 도메인: <code>프로젝트명.vercel.app</code><br>환경변수 값은 여기서 안 다룸</div>
-          </div>
-          <div class="p-card">
-            <h4>(b) 서비스 키 <span class="tag sol">Vercel 환경변수</span></h4>
-            <div class="value">
-              <strong>UPSTAGE_API_KEY</strong><br>
-              • 용도: Solar Pro 4 호출용 (음식 해석·칼로리 범위·전략 텍스트)<br>
-              • 발급처: Upstage<br>
-              • <strong>값은 사용자가 직접 입력</strong>, 대화에 적지 않음<br>
-              • <code>/api</code>만 읽고, 클라이언트에는 0개
-            </div>
-          </div>
-          <div class="p-card" style="grid-column: 1 / -1;">
-            <h4>(c) 사용자 프로필 + 하루 기록 <span class="tag local">localStorage</span></h4>
-            <div class="value">
-              <strong>프로필(날짜 무관 지속):</strong> <code>gender</code>, <code>age</code>, <code>height_cm</code>, <code>weight_kg</code>, <code>goal</code><br>
-              <strong>하루 기록(날짜 기준):</strong> 오늘 활동 강도, 오늘 먹은 음식(자연어 리스트), 오늘 예정 음식(자연어) — 키: 현재 날짜(<code>YYYY-MM-DD</code>)<br>
-              • 같은 날 재접속 시 저장돼 있던 오늘 기록 유지<br>
-              • 날짜가 바뀌면 새 키로 새 하루 기록 시작, 전날은 오늘 화면에 미노출<br>
-              • 프로필 초기화 버튼은 프로필만 초기화
-            </div>
-          </div>
+                      <h4>(a) 배포 연결</h4>
+                      <div class="value">
+                        Vercel을 통해 서비스 배포<br>
+                        프로덕션 주소: <code>프로젝트명.vercel.app</code> (주소는 나중에 적음)
+                      </div>
+                    </div>
+                    <div class="p-card">
+                      <h4>(b) 서비스 키 <span class="tag sol">Vercel 환경변수</span></h4>
+                      <div class="value">
+                        UPSTAGE_API_KEY를 Vercel 환경변수로 설정<br>
+                        음식 해석, 칼로리 추정, 코칭 및 추천에 사용<br>
+                        키 값은 클라이언트에 노출하지 않음
+                      </div>
+                    </div>
+                    <div class="p-card" style="grid-column: 1 / -1;">
+                      <h4>(c) 사용자 데이터 저장</h4>
+                      <div class="value">
+                        프로필과 날짜별 식사 기록을 브라우저에 저장<br>
+                        저장된 날짜의 분석·코칭·추천 결과도 함께 유지<br>
+                        다시 해당 날짜를 선택하면 마지막 저장 결과를 복원
+                      </div>
+                    </div>
         </div>
       </div>
     </section>
@@ -393,24 +455,20 @@
       <div class="section-body">
         <table>
           <tr>
-            <td>추정치 표시</td>
-            <td>모든 칼로리 수치·음식 추정치는 <strong>활동계수와 일반 음식 참조 정보의 추정치</strong>이며 실제 값과 차이 날 수 있음을 표시. 숫자에 "약", 범위에 "~ kcal" 사용, 단정 표현 금지</td>
+            <td>칼로리 표시</td>
+            <td>음식 칼로리는 하나의 확정값이 아니라 <strong>추정 범위로 표시</strong>한다. "약", "~ kcal" 등의 표현을 사용해 추정치임을 명확히 하고, 실제 섭취량이나 조리 방식에 따라 차이가 날 수 있음을 전제로 한다.</td>
           </tr>
           <tr>
-            <td>없는 값</td>
-            <td>없는 값은 <strong>'확인 불가'</strong>로 두고 추측하지 않음</td>
+            <td>목표값 계산</td>
+            <td>목표 섭취 칼로리는 사용자 프로필, 목표(감량/유지/증량), 활동 수준을 바탕으로 계산한 <strong>참고값</strong>이다. 음식 칼로리 추정치와 목표 칼로리 계산값을 동일한 개념처럼 표현하지 않는다.</td>
           </tr>
           <tr>
-            <td>키·프록시 주소</td>
-            <td>서버(<code>/api</code>)에만. 클라이언트(index.html)에는 <strong>0개</strong></td>
+            <td>입력 기반 분석</td>
+            <td>사용자가 입력하지 않은 음식, 식사, 일정은 <strong>임의로 추가하지 않는다</strong>. 해석이 어려운 정보는 단정적으로 만들어내지 않는다.</td>
           </tr>
           <tr>
-            <td>기준 시각</td>
-            <td>오늘(date) 기준이라는 점 명시</td>
-          </tr>
-          <tr>
-            <td>최소 권한</td>
-            <td>필요한 계산만 수행</td>
+            <td>날짜 기준</td>
+            <td>분석과 저장은 <strong>현재 선택한 기록 날짜를 기준</strong>으로 처리한다.</td>
           </tr>
         </table>
       </div>
@@ -424,40 +482,44 @@
         <span class="s-arrow">▶</span>
       </div>
       <div class="section-body">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">시크릿 창(계정·저장값 없는 첫 방문)에서 아래가 모두 돼야 함</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">처음 방문한 사용자가 아래 흐름을 문제없이 완료할 수 있어야 함</p>
 
         <div class="check-list">
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>기본 프로필 등록</strong> 화면 → localStorage 저장 확인</div>
+            <div class="txt"><strong>기본 프로필 등록</strong> — 성별·나이·키·체중·목표를 입력하고 저장할 수 있음</div>
           </div>
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>오늘 활동 강도 + 먹은 음식</strong> 입력 → 계산 결과 표시 (목표/현재/남은 칼로리 요약 + 음식별 추정치 + 전략)</div>
+            <div class="txt"><strong>날짜 선택 및 식사 기록</strong> — 기록할 날짜를 선택하고, 아침·점심·저녁·간식에 먹은 음식을 자연어로 입력할 수 있음</div>
           </div>
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>예정 음식 입력</strong> 시 → 총 섭취량 예상 범위와 목표 대비 판단 표시</div>
+            <div class="txt"><strong>기록 저장 및 칼로리 분석</strong> — 기록 저장 후 음식별·끼니별 추정 칼로리가 표시되고, 현재 섭취량·목표 섭취량·남은 칼로리(또는 초과 상태)와 목표 대비 진행도를 확인할 수 있음</div>
           </div>
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>예정 음식 없을 때</strong> → 남은 칼로리 기준 식사 추천 표시</div>
+            <div class="txt"><strong>DDC 에이전트 코칭</strong> — 현재 상태, 식단 분석, 생활 패턴 반영 3개 영역의 코칭이 표시됨</div>
           </div>
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>같은 날 재접속</strong> 시 오늘 활동 강도·먹은 음식 기록 유지</div>
+            <div class="txt"><strong>다음 식사 추천</strong> — 현재 섭취 상태를 기준으로 추천 메뉴가 표시되고, 추천 메뉴별 예상 칼로리와 설명을 확인할 수 있음</div>
           </div>
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>재접속 후 음식 추가 입력</strong> → 현재 섭취량·남은 칼로리 정상 갱신</div>
+            <div class="txt"><strong>추가 일정·예정 식사 반영</strong> — 추가 일정이나 예정 식사를 입력하면 분석과 코칭에 반영됨</div>
           </div>
           <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><code>/api</code> 응답이 환경변수 값을 포함하지 않음</div>
+            <div class="txt"><strong>날짜별 기록 복원</strong> — 다른 날짜로 이동한 뒤 다시 저장한 날짜로 돌아오면 해당 날짜의 식사 기록과 마지막 분석·코칭·추천 결과가 그대로 복원됨</div>
           </div>
-          <div class="check-item">
+          <div class="check-item done">
             <div class="box"></div>
-            <div class="txt"><strong>공개 URL:</strong> <code>프로젝트명.vercel.app</code>, index 200 + 제목 문자열 원문 그대로, <code>/api</code> 200</div>
+            <div class="txt"><strong>기록 수정 및 갱신</strong> — 기존 날짜의 식사 내용을 수정하고 다시 기록 저장하면 최신 입력을 기준으로 분석·코칭·추천 결과가 갱신됨</div>
+          </div>
+          <div class="check-item done">
+            <div class="box"></div>
+            <div class="txt"><strong>새로고침 후 유지</strong> — 브라우저를 새로고침해도 저장된 프로필과 날짜별 기록·분석 결과가 유지됨</div>
           </div>
         </div>
 
@@ -466,7 +528,7 @@
         </div>
 
         <div style="margin-top:16px;">
-          <h4 style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">배포 후 검증 체크리스트</h4>
+          <h4 style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">배포 검증 (최소)</h4>
           <table>
             <tr>
               <th>항목</th>
@@ -477,24 +539,12 @@
               <td>index 200 + 제목 문자열 원문 그대로</td>
             </tr>
             <tr>
-              <td><code>/api</code> 상태 코드</td>
-              <td>200</td>
+              <td><code>/api</code> 응답에 환경변수 값이 포함되지 않음</td>
+              <td>확인</td>
             </tr>
             <tr>
-              <td>클라이언트 소스에 키·프록시 주소</td>
-              <td>0개</td>
-            </tr>
-            <tr>
-              <td><code>/api</code> 응답 JSON에 환경변수 값</td>
-              <td>없음</td>
-            </tr>
-            <tr>
-              <td><code>/api</code>가 호출하는 외부 주소 목록</td>
-              <td>PRD 6번과 일치 (Upstage API만)</td>
-            </tr>
-            <tr>
-              <td>시크릿 창 첫 방문 안내</td>
-              <td>스스로 나오고 최소 기능 동작</td>
+              <td>시크릿 창 첫 방문 시 기본 기능 동작</td>
+              <td>스스로 안내 나오고 최소 기능 동작</td>
             </tr>
           </table>
         </div>
@@ -511,19 +561,13 @@
       <div class="section-body">
         <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
           <div class="highlight danger">
-            <strong>치료식·질환 처방</strong> — 생활 속 칼로리·식사 균형 관리 용도로만. 질환 관리·치료 목적 식단 처방은 하지 않음.
+            <strong>의료·치료 목적 식단 처방</strong> — 질환 관리, 치료식, 의료적 식단 처방은 제공하지 않음. 일상적인 식사 조절을 돕는 용도로 한정.
           </div>
           <div class="highlight danger">
-            <strong>정밀 영양 분석</strong> — 탄단지·미량영양소 등 식사 외 영양 정보는 노출하지 않음. 칼로리 추정·전략만.
+            <strong>정밀 영양 분석</strong> — 탄수화물·단백질·지방, 미량영양소 등 정밀 영양 분석은 제공하지 않음. 현재 MVP는 칼로리 추정과 하루 식사 전략 중심.
           </div>
           <div class="highlight danger">
-            <strong>실제 소모 칼로리 측정 아님</strong> — 오늘 예상 소비는 활동계수(1.2/1.375/1.55/1.725/1.9) 기반 <strong>간이 추정치</strong>. 개인별 신체활동·운동 종류·강도·생활패턴에 따라 실제 소비열량과 차이 발생 가능.
-          </div>
-          <div class="highlight danger">
-            <strong>운동 소모 칼로리 별도 입력·가산 금지</strong> — 중복 계산 방지. 오늘 활동 강도에 이미 포함.
-          </div>
-          <div class="highlight danger">
-            <strong>외부 식품 API 연동 없음</strong> — 일반 음식 참조 범위만 사용. API 키 없음.
+            <strong>실제 소비 칼로리의 정밀 측정</strong> — 활동 수준을 기반으로 계산한 예상 소비량이며 실제 측정값이 아님. 개인의 운동 종류, 강도, 생활패턴에 따라 실제 값과 차이가 날 수 있음.
           </div>
         </div>
       </div>

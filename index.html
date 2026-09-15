@@ -15,14 +15,18 @@
   <p class="header-desc">식사, 활동량, 예정된 일정까지 실시간으로 반영해 다음 식사 전략을 계속 업데이트해요.</p>
 <!-- 달력 영역을 여기 추가 -->
 <div class="header-calendar">
-  <button type="button" class="calendar-button">
-    <span class="calendar-icon">📅</span>
-    <span>2026-09-14</span>
-  </button>
+  <input
+    type="date"
+    id="recordDatePicker"
+    class="calendar-date-input"
+  >
 </div>
 <!-- 프로필 섹션 (기존 그대로 유지) -->
 <section id="profileSection" class="card profile-card">
-    <div class="card-title">기본 정보 (처음 한 번만 등록)</div>
+    <div class="card-title section-title-with-icon">
+  <img src="images/user.png" class="section-title-icon" alt="">
+  기본 정보 <span id="profileHint">(처음 한 번만 등록)</span>
+</div>
     <div id="profileForm">
       <div class="profile-grid">
         <div class="profile-field">
@@ -71,7 +75,10 @@
   <!-- 오늘의 상태 (프로필 바로 아래, 오늘의 계획 위) — 계산 결과가 있을 때만 표시 -->
   <section id="todayStateSection" class="hidden">
     <div class="card state-card">
-      <div class="card-title">오늘의 상태</div>
+      <div class="card-title section-title-with-icon">
+  <img src="images/diet-analysis.png" class="section-title-icon" alt="">
+  오늘의 상태
+</div>
 
       <!-- 진행바 (가장 먼저) -->
       <div style="margin-top:4px;">
@@ -123,7 +130,10 @@
   <section id="todaySection" class="card">
     <div class="today-header">
       <div class="today-header-left">
-        <div class="card-title">오늘의 기록</div>
+        <div class="card-title section-title-with-icon">
+  <img src="images/clipboard.png" class="section-title-icon" alt="">
+  오늘의 기록
+</div>
         <div class="date-label" id="dateLabel"></div>
       </div>
       <div class="today-header-right">
@@ -202,10 +212,13 @@
 
 <div class="today-agent-area">
 
-  <div class="ddc-agent-title">DDC 에이전트</div>
+  <div class="ddc-agent-title title-with-icon">
+  <img src="images/ddc-agent.png" class="title-icon" alt="">
+  추가 일정 입력
+</div>
 
   <div class="ddc-agent-desc">
-    예정된 식사, 활동, 일정 등을 자유롭게 적어주세요. (없으면 안 적으셔도 되요)
+    예정된 식사, 활동, 일정 등을 자유롭게 적어주세요. (없으면 안 적으셔도 돼요)
   </div>
 
   <textarea
@@ -251,7 +264,10 @@
 
       <!-- 왼쪽 : 에이전트 코칭 -->
   <div class="agent-coaching">
-  <div class="card-title">에이전트 코칭</div>
+  <div class="card-title title-with-icon">
+  <img src="images/ai-robot.png" class="title-icon" alt="">
+  에이전트 코칭
+</div>
 
   <p class="strategy-sub">
     당신의 식단과 생활 패턴을 분석한 오늘의 코칭이에요.
@@ -292,7 +308,10 @@
 
       <!-- 오른쪽 : 다음 식사 추천 -->
       <div class="agent-recommend" id="suggestionsSection">
-        <div class="card-title">다음 식사 추천</div>
+        <div class="card-title title-with-icon">
+  <img src="images/meal-recommendation.png" class="title-icon" alt="">
+  다음 식사 추천
+</div>
 
         <div id="suggestionsContent">
           <div class="empty">추천을 계산 중이에요.</div>
