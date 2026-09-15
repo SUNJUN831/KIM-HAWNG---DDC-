@@ -1,0 +1,38 @@
+# 환경 변수·비밀 (절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# 로컬 설정·캐시
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+*.swp
+*.swo
+
+# Vercel 로컬 관련
+.vercel
+
+# 의존성
+node_modules/
+
+# Git 자격증명 저장소 (로컬용)
+.git-credentials-ddc
+
+# 테스트 결과·임시 파일
+coverage/
+dist/
+build/
+tmp/
+temp/
+*.tmp
+*.temp
+
+.vercel
+.env*
+
+.vercel
+.env*

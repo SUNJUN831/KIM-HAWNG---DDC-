@@ -1,0 +1,147 @@
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.meal-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px 9px;
+  background: #f7fafd;
+  border: 1px solid #dbe7f3;
+  border-radius: 10px;
+}
+
+.meal-cell .meal-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2f6df6;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 1px;
+}
+
+.meal-cell textarea {
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid #e3eaf2;
+  border-radius: 7px;
+  background: #ffffff;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--fg);
+  resize: vertical;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+
+.meal-cell textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.08);
+}
+
+.meal-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.meal-input {
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  resize: vertical;
+  min-height: 44px;
+}
+
+.meal-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.meal-empty-hint {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 2px 0;
+}
+.container {
+  position: relative;
+}
+.header-calendar {
+  position: absolute;
+  top: 0;
+  right: 20px;
+  z-index: 100;
+}
+
+.calendar-date-input {
+  height: 38px;
+  padding: 0 12px;
+
+  background: #ffffff;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.calendar-date-input:hover {
+  border-color: #b8cdf5;
+  background: #f8fbff;
+}
+
+.calendar-date-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.calendar-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #111827;
+  cursor: pointer;
+}
+
+.calendar-icon {
+  font-size: 16px;
+}
