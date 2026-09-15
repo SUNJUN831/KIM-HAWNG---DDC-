@@ -49,17 +49,21 @@ async function runCalc() {
   const plannedRaw = $('plannedFoods').value.trim();
 
   const key = currentRecordKey();
-  saveTodayByKey(key, {
-    activityLevel,
-    meals: {
-      breakfast: mealBreakfast,
-      lunch: mealLunch,
-      dinner: mealDinner,
-      snack: mealSnack,
-    },
-    plannedFoods: plannedRaw,
-    savedAt: new Date().toISOString()
-  });
+
+const savedRecord = {
+  activityLevel,
+  meals: {
+    breakfast: mealBreakfast,
+    lunch: mealLunch,
+    dinner: mealDinner,
+    snack: mealSnack,
+  },
+  plannedFoods: plannedRaw,
+  savedAt: new Date().toISOString(),
+  agentResult: null
+};
+
+saveTodayByKey(key, savedRecord);
 
   const payload = {
     profile,
@@ -74,20 +78,37 @@ async function runCalc() {
   };
 
   hideElem('resultSection');
-  hideElem('todayStateSection');
-  $('strategyContent').innerHTML = '<div class="empty">계산 중이에요…</div>';
-  showElem('resultSection');
-  showElem('todayStateSection');
-  showElem('strategyContent');
+hideElem('todayStateSection');
+
+$('strategyContent').innerHTML =
+  '<div class="empty">계산 중이에요...</div>';
+
+// 이전 날짜 추천 메뉴 제거
+$('suggestionsContent').innerHTML =
+  '<div class="suggestions-empty">추천 메뉴를 계산 중이에요...</div>';
+
+showElem('resultSection');
+showElem('todayStateSection');
+showElem('strategyContent');
 
   try {
-    const data = await fetchCalculation(payload);
-    renderResult(data);
-  } catch (e) {
-    $('strategyContent').innerHTML =
-      `<div class="strategy-box" style="border-left-color:var(--warn);">계산 중 오류가 발생했어요: ${esc(e.message)}</div>`;
-    console.error(e);
-  }
+  const data = await fetchCalculation(payload);
+
+  // 화면에 코칭 + 추천 메뉴 표시
+  renderResult(data);
+
+  // 계산 결과까지 해당 날짜 기록에 같이 저장
+  saveTodayByKey(key, {
+    ...savedRecord,
+    agentResult: data,
+    savedAt: new Date().toISOString()
+  });
+
+} catch (e) {
+  $('strategyContent').innerHTML =
+    `<div class="strategy-box" style="border-left-color:var(--warn);">계산 중 오류가 발생했어요: ${esc(e.message)}</div>`;
+  console.error(e);
+}
 }
 
 // 프로필 저장
@@ -170,13 +191,24 @@ window.addEventListener('recorddate:changed', (event) => {
   }
 
   // 저장된 날짜면 기록 복원
-  if (saved) {
-    renderTodayForm(saved);
+ if (saved) {
+  // 식사/일정 복원
+  renderTodayForm(saved);
 
-    hideElem('todayStateSection');
-    hideElem('resultSection');
-    return;
-  }
+  // 저장된 에이전트 결과가 있으면 그대로 복원
+ if (saved.agentResult) {
+  showElem('todayStateSection');
+  showElem('resultSection');
+  showElem('strategyContent');
+
+  renderResult(saved.agentResult);
+} else {
+  hideElem('todayStateSection');
+  hideElem('resultSection');
+}
+
+  return;
+}
 
   // 저장되지 않은 날짜면 초기 화면
   $('mealBreakfast').value = '';
@@ -208,11 +240,20 @@ window.addEventListener('recorddate:changed', (event) => {
     hideElem('todayStateSection');
   }
 
-  const today = loadTodayByKey(currentRecordKey());
-  $('dateLabel').textContent = '기록 · ' + currentRecordKey();
-  if (today) {
-    renderTodayForm(today);
+ const today = loadTodayByKey(currentRecordKey());
+$('dateLabel').textContent = '기록 · ' + currentRecordKey();
+
+if (today) {
+  renderTodayForm(today);
+
+  if (today.agentResult) {
+    showElem('todayStateSection');
+    showElem('resultSection');
+    showElem('strategyContent');
+
+    renderResult(today.agentResult);
   }
+}
   if (profile && today) {
     const hasMeals = today.meals && typeof today.meals === 'object' && !Array.isArray(today.meals)
       && Object.values(today.meals).some(v => v && typeof v === 'string' && v.trim());
