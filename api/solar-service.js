@@ -112,12 +112,38 @@ export async function runDietCoach(body) {
   });
   const strategy = strategyResult?.strategy || '계산된 전략이 없어요.';
 
-  // 9) 공공 API 기반 추천
+  // 9) 공공 API 기반 추천 — 남은 칼로리가 크면 여러 끼로 나누어 추천
   const recTargetAvg = projectedRemainingAvg !== null && projectedRemainingAvg > 0 ? projectedRemainingAvg : remainingAvgCalc;
   const recTargetLo = projectedRemainingLo !== null && projectedRemainingLo !== undefined ? projectedRemainingLo : remainingLoCalc;
   const recTargetHi = projectedRemainingHi !== null && projectedRemainingHi !== undefined ? projectedRemainingHi : remainingHiCalc;
   const lifestyleText = lifestylePatterns && lifestylePatterns.length > 0 ? lifestylePatterns.join(' ') : '';
-  const recommendedFoods = await buildRecommendedFoods(recTargetAvg, foods, 4, recTargetLo, recTargetHi, foodHistory, macroFilter,lifestyleText);
+
+  // 남은 칼로리 중간값 기준 분할 추천 구간 판정
+  const remainingMid = Math.round(((recTargetLo ?? remainingLoCalc) + (recTargetHi ?? remainingHiCalc)) / 2);
+  let splitMeals = null; // { parts: number, perPartAvg: number, perPartLo: number, perPartHi: number } | null
+  if (remainingMid > 0) {
+    if (remainingMid >= 1500 && remainingMid < 2100) {
+      // 3분할: 한 끼+간식 정도로 나누어 추천
+      splitMeals = {
+        parts: 3,
+        perPartAvg: Math.round(remainingMid / 3),
+        perPartLo: Math.round((recTargetLo ?? remainingLoCalc) / 3),
+        perPartHi: Math.round((recTargetHi ?? remainingHiCalc) / 3),
+      };
+    } else if (remainingMid >= 850) {
+      // 2분할: 두 끼 정도로 나누어 추천
+      splitMeals = {
+        parts: 2,
+        perPartAvg: Math.round(remainingMid / 2),
+        perPartLo: Math.round((recTargetLo ?? remainingLoCalc) / 2),
+        perPartHi: Math.round((recTargetHi ?? remainingHiCalc) / 2),
+      };
+    }
+  }
+
+  const recommendedFoods = await buildRecommendedFoods(
+    recTargetAvg, foods, 4, recTargetLo, recTargetHi, foodHistory, macroFilter, lifestyleText, splitMeals
+  );
 
   // 10) 생활 패턴 안내 문구
   const lifestyleNote = lifestylePatterns && lifestylePatterns.length > 0

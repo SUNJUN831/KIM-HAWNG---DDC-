@@ -1,6 +1,7 @@
 // 결과 렌더링 — 음식 로그, 끼니 요약, 추천, 전체 결과
 
-import { $, esc, fmt, MEAL_KEYS } from './state.js';
+import { $, esc, fmt, MEAL_KEYS, loadTodayByKey, activeTodayKey } from './state.js';
+import { filterRecentFoods } from './past-food-filter.js';
 
 function renderFoodLog(foods, meals) {
   const el = $('foodLog');
@@ -128,37 +129,50 @@ function renderResult(data) {
   const goalLabel = data.goal === 'loss' ? '감량' : data.goal === 'maintain' ? '유지' : '증량';
   $('goalValue').textContent = fmt(data.targetCalories) + ' kcal (' + goalLabel + ')';
   $('currentIntakeValue').textContent = '약 ' + fmt(data.currentIntakeLo) + '~' + fmt(data.currentIntakeHi) + ' kcal';
-  // 남은 칼로리 상태 표시
-if (data.remainingHi < 0) {
-  const overLo = Math.abs(data.remainingHi);
-  const overHi = Math.abs(data.remainingLo);
+  // 남은 칼로리 상태 표시 — 초과/경계/정상 구분
+  const isOver = data.remainingHi < 0;
+  const isNear = !isOver && data.remainingLo < 0;
 
-  $('remainingValue').textContent =
-    '약 ' + fmt(overLo) + '~' + fmt(overHi) + ' kcal 초과';
+  const remainingEl = $('remainingValue');
+  const progressFillEl = $('progressFill');
 
-  $('goalNote').textContent =
-    '현재까지 섭취량을 기준으로 오늘 목표 섭취량을 약 ' +
-    fmt(overLo) + '~' + fmt(overHi) +
-    ' kcal 초과했어요. 추가 섭취는 가볍게 조절하는 것이 좋아요.';
+  if (isOver) {
+    const overLo = Math.abs(data.remainingHi);
+    const overHi = Math.abs(data.remainingLo);
 
-} else if (data.remainingLo < 0) {
-  $('remainingValue').textContent = '목표 범위 근처';
+    $('remainingValue').textContent =
+      '약 ' + fmt(overLo) + '~' + fmt(overHi) + ' kcal 초과';
 
-  $('goalNote').textContent =
-    '현재 섭취량은 목표 범위에 가까워요. 추정치에 따라 최대 ' +
-    fmt(Math.abs(data.remainingLo)) + ' kcal 초과하거나 ' +
-    fmt(data.remainingHi) + ' kcal 정도 남을 수 있어요.';
+    $('goalNote').textContent =
+      '현재까지 섭취량을 기준으로 오늘 목표 섭취량을 약 ' +
+      fmt(overLo) + '~' + fmt(overHi) +
+      ' kcal 초과했어요. 추가 섭취는 가볍게 조절하는 것이 좋아요.';
 
-} else {
-  $('remainingValue').textContent =
-    '약 ' + fmt(data.remainingLo) + '~' + fmt(data.remainingHi) + ' kcal';
+    // 초과 시: 상태 텍스트 빨강, 진행바 fill 빨강
+    if (remainingEl) remainingEl.classList.add('state-remaining-over');
+    if (progressFillEl) progressFillEl.classList.add('progress-fill-over');
 
-  $('goalNote').textContent =
-    '현재까지 섭취량을 기준으로 오늘 남은 식사는 약 ' +
-    fmt(data.remainingLo) + '~' +
-    fmt(data.remainingHi) +
-    ' kcal 범위에서 계획할 수 있어요.';
-}
+  } else {
+    // 경계 또는 정상 — 빨강 클래스 제거
+    if (remainingEl) remainingEl.classList.remove('state-remaining-over');
+    if (progressFillEl) progressFillEl.classList.remove('progress-fill-over');
+
+    if (isNear) {
+      $('remainingValue').textContent = '목표 범위 근처';
+      $('goalNote').textContent =
+        '현재 섭취량은 목표 범위에 가까워요. 추정치에 따라 최대 ' +
+        fmt(Math.abs(data.remainingLo)) + ' kcal 초과하거나 ' +
+        fmt(data.remainingHi) + ' kcal 정도 남을 수 있어요.';
+    } else {
+      $('remainingValue').textContent =
+        '약 ' + fmt(data.remainingLo) + '~' + fmt(data.remainingHi) + ' kcal';
+      $('goalNote').textContent =
+        '현재까지 섭취량을 기준으로 오늘 남은 식사는 약 ' +
+        fmt(data.remainingLo) + '~' +
+        fmt(data.remainingHi) +
+        ' kcal 범위에서 계획할 수 있어요.';
+    }
+  }
 const mealCalorieTargets = {
   breakfast: 'breakfastCalorie',
   lunch: 'lunchCalorie',
@@ -336,15 +350,18 @@ if (!lifestylePattern ||
 }
 
 const coachingItems = [
-  { title: '현재 상태', text: currentStatus },
-  { title: '식단 분석', text: dietAnalysis },
-  { title: '생활 패턴 반영', text: lifestylePattern }
+{ title: '현재 상태', icon: './images/diet-analysis.png', text: currentStatus },
+  { title: '식단 분석', icon: './images/meal.png', text: dietAnalysis },
+  { title: '생활 패턴 반영', icon: './images/lifestyle-pattern.png', text: lifestylePattern }
 ];
 
 $('strategyContent').innerHTML = `
   <div class="coaching-blocks">
     ${coachingItems.map(item => `
       <div class="coaching-item">
+        <div class="coaching-icon">
+          ${item.icon ? `<img src="${esc(item.icon)}" class="coaching-icon-img" alt="">` : ''}
+        </div>
         <div class="coaching-body">
           <div class="coaching-title">${item.title}</div>
           <div class="coaching-text">${esc(item.text)}</div>
@@ -361,8 +378,9 @@ $('strategyContent').innerHTML = `
     const goal = $('progressGoal');
     const pMin = 0;
     const pMax = Math.max(data.targetCalories, 1);
+    const curAvg = Math.round((data.currentIntakeLo + data.currentIntakeHi) / 2);
     const curVal = Math.min(data.currentIntakeLo, pMax);
-    const pct = Math.min(Math.max((curVal / pMax) * 100, 0), 100);
+    const pct = Math.min(Math.max((curAvg / pMax) * 100, 0), 100);
    if (fill) {
   fill.style.width = pct + '%';
   fill.textContent = pct >= 10 ? Math.round(pct) + '%' : '';
@@ -371,7 +389,7 @@ $('strategyContent').innerHTML = `
     if (goal) goal.textContent = '목표 ' + fmt(data.targetCalories) + ' kcal';
   }
 
-  renderSuggestions(data.recommendedFoods || []);
+  renderSuggestions(filterRecentFoods(data.recommendedFoods || [], 2, activeTodayKey()));
 }
 
 export { renderFoodLog, renderMealSummary, renderSuggestions, renderResult };

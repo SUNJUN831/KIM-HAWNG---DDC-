@@ -234,6 +234,11 @@
   transition: width 0.3s ease;
 }
 
+/* 초과 상태일 때 진행바 빨강 */
+.progress-fill-over {
+  background: #ef4444 !important;
+}
+
 .progress-label {
   display: flex;
   align-items: center;
@@ -408,6 +413,11 @@
 
 .state-remaining {
   color:#2563eb;
+}
+
+/* 초과 시 남은 칼로리 텍스트 빨강 */
+.state-remaining-over {
+  color:#ef4444 !important;
 }
 
 .state-goal-value {
@@ -766,22 +776,21 @@
 }
 
 .coaching-icon {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 999px;
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 26px;
-  line-height: 1;
-}
-
-.coaching-body {
+   width: 48px;
+   height: 48px;
+   flex-shrink: 0;
+   display: flex;
+ }
+ .coaching-icon.has-img {
+   background: transparent;
+ }
+ 
+ .coaching-icon-img {
+   width: 36px;
+   height: 36px;
+   object-fit: contain;
+ }
+ .coaching-body {
   flex: 1;
   min-width: 0;
 }

@@ -204,7 +204,7 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
       ...others.sort(() => Math.random() - 0.5).slice(0, 5 - Math.min(preferredArr.length, 3)),
     ];
   } else {
-    shuffledCodes = FOOD_LV3_CODES.filter((c) => c !== '00').sort(() => Math.random() - 0.5).slice(0, 15);
+    shuffledCodes = FOOD_LV3_CODES.filter((c) => c !== '00').sort(() => Math.random() - 0.5);
   }
   // avoidCodes에 속한 코드는 제외
   if (avoidCodes && avoidCodes.size > 0) {
@@ -222,7 +222,7 @@ export async function pickFoodsByCalorieTarget(targetCal, count, toleranceKcal =
     shuffledCodes.splice(riceCodeIndex, 1);
     shuffledCodes.unshift('01');
   }
-  const maxCodesToTry = Math.min(shuffledCodes.length, 15);
+  const maxCodesToTry = shuffledCodes.length;
   const poolSize = Math.max(count * 4, 20);
   const candidates = [];
   const maxPerCode = Math.max(10, Math.ceil(poolSize / maxCodesToTry));

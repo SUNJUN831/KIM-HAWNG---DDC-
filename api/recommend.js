@@ -13,13 +13,21 @@ export async function buildRecommendedFoods(
   remainingHi = null,
   foodHistory = [],
   macroFilter = null,
-  lifestyle = ''
+  lifestyle = '',
+  splitMeals = null
 ) {
   if (remainingAvg < 100) return [];
   const useCount = count ?? 4;
   const preferredCodes = macroFilter?.boostCodes || null;
   const avoidCodes = macroFilter?.avoidCodes || null;
 
+  if (splitMeals && splitMeals.parts && splitMeals.parts > 1) {
+    return buildSplitRecommendations(splitMeals, eatenFoods, useCount, foodHistory, lifestyle, macroFilter);
+  }
+
+  let targetCalForPick = remainingAvg;
+  let customSolarHint = macroFilter?.solarHint || '';
+  
   console.log('[DDC] pickFoodsByCalorieTarget 호출 — targetCal:', remainingAvg, 'useCount:', useCount);
   const candidates = await pickFoodsByCalorieTarget(remainingAvg, useCount, 250, preferredCodes, avoidCodes);
   console.log('[DDC] candidates 획득 — 개수:', candidates.length);
@@ -201,4 +209,82 @@ export function filterCandidatesByHistory(candidates, history) {
  */
 export async function getRecommendedFoodsForAvg(remainingAvg, count = null, eatenFoods = [], foodHistory = []) {
   return buildRecommendedFoods(remainingAvg, eatenFoods, count, null, null, foodHistory);
+}
+
+/**
+ * 남은 칼로리 중간값이 커서 여러 끼로 나누어 추천할 때 사용.
+ * splitMeals.parts 개수만큼 반복하며 각 파트별 타겟 칼로리에 맞는 후보를 뽑아 구성.
+ */
+async function buildSplitRecommendations(splitMeals, eatenFoods, useCount, foodHistory, lifestyle, macroFilter) {
+  const { parts, perPartAvg, perPartLo, perPartHi } = splitMeals;
+  if (!parts || parts < 2) return [];
+
+  const allSelected = [];
+  const usedNames = new Set();
+  const partCount = Math.ceil(useCount / parts); // 파트당 할당량 (전체 useCount를 parts로 나눔)
+
+  for (let i = 0; i < parts; i++) {
+    const candidates = await pickFoodsByCalorieTarget(
+      perPartAvg,
+      partCount,
+      250,
+      macroFilter?.boostCodes || null,
+      macroFilter?.avoidCodes || null
+    );
+    const filtered = filterCandidatesByHistory(candidates, foodHistory);
+    const selected = await selectDiverseFoodsWithSolar(
+      filtered,
+      perPartAvg,
+      perPartLo,
+      perPartHi,
+      partCount,
+      foodHistory,
+      lifestyle,
+      macroFilter?.solarHint || ''
+    );
+
+    for (const item of selected) {
+      const name = (item.name || '').trim();
+      if (!name || usedNames.has(name)) continue;
+      usedNames.add(name);
+
+      const matched = candidates.find(
+        (c) => c.name === name || (c.displayName || '').trim() === name || (c.category || '').trim() === name
+      );
+      if (matched && matched.foodSize != null && matched.foodSize > 0) {
+        const calActual = matched.calActual != null ? matched.calActual : (item.calActual != null ? item.calActual : 0);
+        const gram = matched.foodSize;
+        allSelected.push({
+          name: matched.category || matched.displayName || matched.name,
+          qty: item.qty || `${gram}g`,
+          calActual,
+          gram,
+          note: item.note || (matched.category ? `${matched.category} 계열` : ''),
+          code: matched.code,
+        });
+      } else {
+        allSelected.push({
+          name,
+          qty: item.qty || '',
+          calActual: item.calActual != null ? item.calActual : 0,
+          gram: item.gram != null ? Number(item.gram) : null,
+          note: item.note || '',
+          code: '',
+        });
+      }
+    }
+  }
+
+  if (allSelected.length === 0) return [];
+  const capped = allSelected.slice(0, useCount);
+  return capped.map((p, i) => ({
+    name: p.name,
+    qty: p.qty,
+    kcal: p.calActual,
+    gram: p.gram,
+    note: p.note,
+    isPlanned: false,
+    mealType: i < useCount - 1 ? 'dinner' : 'snack',
+    splitPart: i + 1,
+  }));
 }
